@@ -4,7 +4,7 @@ import { SegmentedControl } from "../components/ui/SegmentedControl";
 import { Chip } from "../components/ui/Chip";
 import { Overline } from "../components/ui/Overline";
 import { StopCard } from "../components/cards/StopCard";
-import { StopDetailDrawer } from "../components/overlays/StopDetailDrawer";
+import { StopDrawerHost } from "../components/overlays/StopDrawerHost";
 import { StopCardSkeleton } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
 import { RouteBadge } from "../components/ui/RouteBadge";
@@ -49,15 +49,9 @@ export function Dashboard() {
   const mapRoutes = useAppStore((s) => s.mapRoutes);
   const toggleMapRoute = useAppStore((s) => s.toggleMapRoute);
   const setSelectedStop = useAppStore((s) => s.setSelectedStop);
-  const selectedStop = useAppStore((s) => s.selectedStop);
 
   const { stops, loading } = useArrivals(mapRoutes);
   const { alerts } = useAlerts();
-
-  const activeStop = useMemo(
-    () => stops.find((s) => s.stopId === selectedStop) ?? null,
-    [stops, selectedStop]
-  );
 
   const flat = useMemo(() => flattenArrivals(stops), [stops]);
   const hero = flat[0];
@@ -174,7 +168,7 @@ export function Dashboard() {
           </div>
         </aside>
       </div>
-      <StopDetailDrawer stop={activeStop} onClose={() => setSelectedStop(null)} />
+      <StopDrawerHost stops={stops} />
     </PageShell>
   );
 }

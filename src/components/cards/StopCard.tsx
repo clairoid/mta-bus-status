@@ -3,6 +3,7 @@ import { minutesToSecs } from "../../hooks/useArrivals";
 import { RouteBadge } from "../ui/RouteBadge";
 import { CountdownTime } from "../ui/CountdownTime";
 import { useAppStore } from "../../store/useAppStore";
+import { useToast } from "../overlays/toast-context";
 
 interface StopCardProps {
   stop: StopArrivals;
@@ -16,6 +17,12 @@ interface StopCardProps {
 export function StopCard({ stop, accessible, distance, onOpen }: StopCardProps) {
   const isFav = useAppStore((s) => !!s.fav[stop.stopId]);
   const toggleFavorite = useAppStore((s) => s.toggleFavorite);
+  const { showToast } = useToast();
+
+  const onToggleFav = () => {
+    toggleFavorite(stop.stopId);
+    showToast(isFav ? "Removed from favorites" : "Added to favorites", isFav ? "☆" : "★");
+  };
 
   return (
     <div className="self-start overflow-hidden rounded-card border border-border bg-card">
@@ -36,12 +43,12 @@ export function StopCard({ stop, accessible, distance, onOpen }: StopCardProps) 
           tabIndex={0}
           onClick={(e) => {
             e.stopPropagation();
-            toggleFavorite(stop.stopId);
+            onToggleFav();
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.stopPropagation();
-              toggleFavorite(stop.stopId);
+              onToggleFav();
             }
           }}
           className="cursor-pointer text-[15px]"
