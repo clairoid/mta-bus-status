@@ -31,6 +31,17 @@ export function crowdColor(c: string): string {
   return CROWD_COLORS[c] || "#9aa0aa";
 }
 
+// Normalize SIRI Occupancy enum values to our empty/seats/standing/full keys.
+export function occupancyToCrowd(occupancy: string | null | undefined): string | null {
+  if (!occupancy) return null;
+  const o = occupancy.toLowerCase();
+  if (o.includes("full")) return "full";
+  if (o.includes("standing")) return "standing";
+  if (o.includes("fewseats") || o === "seatsavailable") return "seats";
+  if (o.includes("manyseats") || o.includes("empty")) return "empty";
+  return "seats";
+}
+
 // README "Countdown time color logic": <=120s green, <=420s yellow, else text
 export function timeColor(remainingSecs: number, textColor: string): string {
   if (remainingSecs <= 120) return "#22c55e";
