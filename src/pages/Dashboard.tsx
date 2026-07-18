@@ -9,7 +9,7 @@ import { StopCardSkeleton } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
 import { RouteBadge } from "../components/ui/RouteBadge";
 import { CountdownTime } from "../components/ui/CountdownTime";
-import { LiveMap } from "../components/map/LiveMap";
+import { LiveMapLazy } from "../components/map/LiveMapLazy";
 import { useArrivals, minutesToSecs } from "../hooks/useArrivals";
 import { useAlerts } from "../hooks/useAlerts";
 import { useVehicles } from "../hooks/useVehicles";
@@ -99,7 +99,7 @@ export function Dashboard() {
           </div>
 
           {view === "map" ? (
-            <LiveMap
+            <LiveMapLazy
               vehicles={vehicles}
               geometry={geometry}
               visibleRoutes={mapRoutes}
