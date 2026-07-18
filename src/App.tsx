@@ -7,6 +7,10 @@ import { useOnlineStatus } from "./hooks/useOnlineStatus";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { useAppStore } from "./store/useAppStore";
 import { AppShell } from "./components/chrome/AppShell";
+import { ToastProvider } from "./components/overlays/ToastProvider";
+import { CommandPalette } from "./components/overlays/CommandPalette";
+import { KeyboardHelpModal } from "./components/overlays/KeyboardHelpModal";
+import { OfflineBanner } from "./components/overlays/OfflineBanner";
 import { NAV_ENTRIES } from "./lib/nav";
 import { Dashboard } from "./pages/Dashboard";
 import { LiveArrivals } from "./pages/LiveArrivals";
@@ -35,6 +39,7 @@ function AppShortcuts() {
   const setView = useAppStore((s) => s.setView);
   const setPalette = useAppStore((s) => s.setPalette);
   const setHelpOpen = useAppStore((s) => s.setHelpOpen);
+  const setSelectedStop = useAppStore((s) => s.setSelectedStop);
 
   useKeyboardShortcuts({
     onDigit: (n) => {
@@ -50,6 +55,7 @@ function AppShortcuts() {
     onEscape: () => {
       setPalette(false);
       setHelpOpen(false);
+      setSelectedStop(null);
     },
   });
 
@@ -62,6 +68,7 @@ function AppContent() {
   return (
     <AppShell>
       <AppShortcuts />
+      <OfflineBanner />
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/arrivals" element={<LiveArrivals />} />
@@ -84,6 +91,8 @@ function AppContent() {
         <Route path="/history" element={<TripHistory />} />
         <Route path="/profile" element={<Profile />} />
       </Routes>
+      <CommandPalette />
+      <KeyboardHelpModal />
     </AppShell>
   );
 }
@@ -94,7 +103,9 @@ export function App() {
       <ThemeProvider>
         <AccessibilityProvider>
           <TickProvider>
-            <AppContent />
+            <ToastProvider>
+              <AppContent />
+            </ToastProvider>
           </TickProvider>
         </AccessibilityProvider>
       </ThemeProvider>
