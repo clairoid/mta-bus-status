@@ -3,7 +3,7 @@ import { cors, fetchJSON, SIRI_BASE, API_KEY } from "./lib.js";
 const cache = {};
 
 export default async function handler(req, res) {
-  cors(res);
+  cors(req, res);
   try {
     const route = req.query.route?.toUpperCase();
     if (!route) return res.status(400).json({ error: "route required" });

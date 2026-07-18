@@ -15,7 +15,7 @@ const VIEWS_KEY = "mta-saved-views";
 const SOUND_KEY = "mta-sound-alerts";
 
 const MTA_ROUTES = [
-  "B1","B2","B3","B4","B6","B7","B8","B9","B10","B11","B12","B13","B14","B15","B16","B17","B24","B25","B26","B31","B32","B35","B36","B37","B38","B39","B41","B42","B43","B44","B44-SBS","B45","B46","B46-SBS","B47","B48","B49","B52","B54","B57","B60","B61","B62","B63","B64","B65","B66","B67","B68","B69","B70","B74","B77","B79","B81","B82","B82-SBS","B83","B84","B100","BM1","BM2","BM3","BM4","BM5","BMX1","BMX2","BMX3","BMX4","BMX5","BMX6","BMX7","BMX8","BMX9","BMX10",
+  "B1","B2","B3","B4","B6","B7","B8","B9","B10","B11","B12","B13","B14","B15","B16","B17","B24","B25","B26","B31","B32","B35","B36","B37","B38","B39","B41","B42","B43","B44","B44-SBS","B45","B46","B46-SBS","B47","B48","B49","B52","B54","B57","B60","B61","B62","B63","B64","B65","B66","B67","B68","B69","B70","B74","B77","B79","B81","B82","B82-SBS","B83","B84","B100","BM1","BM2","BM3","BM4","BM5",
   "Q1","Q2","Q3","Q4","Q5","Q6","Q7","Q8","Q9","Q10","Q11","Q12","Q13","Q14","Q15","Q15A","Q16","Q17","Q18","Q19","Q20A","Q20B","Q21","Q22","Q23","Q24","Q25","Q26","Q27","Q28","Q29","Q30","Q31","Q32","Q33","Q34","Q35","Q36","Q37","Q38","Q39","Q40","Q41","Q42","Q43","Q44","Q45","Q46","Q47","Q48","Q49","Q50","Q52-SBS","Q53-SBS","Q54","Q55","Q56","Q57","Q58","Q59","Q60","Q61","Q64","Q65","Q66","Q67","Q68","Q69","Q70-SBS","Q71","Q72","Q76","Q77","Q78","Q80","Q82","Q83","Q84","Q85","Q86","Q88","Q89","Q90","Q100","Q101","Q102","Q103","Q104","Q109","Q110","Q111","Q112","Q113","Q114","Q115","Q116","Q143","Q231","Q252",
   "M1","M2","M3","M4","M5","M7","M8","M9","M10","M11","M12","M13","M14","M15","M15-SBS","M16","M18","M20","M21","M22","M23-SBS","M24","M30","M31","M32","M34-SBS","M35","M40","M42","M43","M50","M51","M55","M57","M60-SBS","M66","M70","M72","M79-SBS","M80","M81","M86-SBS","M96","M98","M100","M101","M102","M103","M104","M106","M116","M125","M128","M142","M143","M148","M149","M150","M151","M212","M213","M214","M215","M216","M217","M218","M219","M220","M222",
   "S1","S2","S3","S4","S5","S6","S7","S8","S9","S10","S12","S15","S16","S17","S18","S19","S20","S21","S22","S26","S27","S28","S29","S31","S32","S33","S34","S40","S41","S42","S43","S44","S45","S46","S47","S48","S49","S51","S52","S53","S54","S55","S56","S57","S59","S60","S61","S62","S66","S68","S69","S74","S76","S78","S79","S81","S84","S86","S89","S90","S91","S92","S93","S94","S96","S98","S99",
@@ -149,8 +149,8 @@ function ArrivalRow({ arrival }) {
   const intervalRef = useRef(null);
 
   useEffect(() => {
-    if (arrival.minutes == null || arrival.minutes <= 0) return;
     setCountdown(arrival.minutes);
+    if (arrival.minutes == null || arrival.minutes <= 0) return;
     intervalRef.current = setInterval(() => {
       setCountdown(prev => {
         if (prev <= 1) return 0;
@@ -300,6 +300,12 @@ function DepartureBoard({ stops, routeColors, activeRoute }) {
   );
 }
 
+// Local-timezone YYYY-MM-DD (toISOString is UTC and shifts NYC evenings
+// to the next day)
+function localDateStr(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 function ServiceCalendar({ alerts }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
@@ -313,7 +319,7 @@ function ServiceCalendar({ alerts }) {
         const end = p.end ? new Date(p.end * 1000) : new Date(p.start * 1000 + 86400000);
         const d = new Date(start);
         while (d <= end) {
-          const dateStr = d.toISOString().slice(0, 10);
+          const dateStr = localDateStr(d);
           if (!days[dateStr]) days[dateStr] = [];
           if (!days[dateStr].some(a => a.id === alert.id)) days[dateStr].push(alert);
           d.setDate(d.getDate() + 1);
@@ -327,7 +333,7 @@ function ServiceCalendar({ alerts }) {
   const month = currentMonth.getMonth();
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDateStr(new Date());
   const monthName = currentMonth.toLocaleString("default", { month: "long", year: "numeric" });
 
   const prevMonth = () => setCurrentMonth(new Date(year, month - 1, 1));
@@ -446,6 +452,70 @@ function busPopupHtml(v, color) {
       ${stopsHtml}
     </div>
   </div>`;
+}
+
+function parseSiriStopArrivals(data) {
+  const delivery = data?.Siri?.ServiceDelivery?.StopMonitoringDelivery;
+  const mon = Array.isArray(delivery) ? delivery[0] : delivery;
+  const visits = mon?.MonitoredStopVisit || [];
+  return visits.map((v) => {
+    const mvj = v.MonitoredVehicleJourney;
+    const call = mvj?.MonitoredCall;
+    if (!call) return null;
+    const arrRoute = (mvj.LineRef || "").replace("MTABC_", "").replace("MTA NYCT_", "").replace("MTA_", "").replace(/\+$/, "");
+    const dir = mvj.DirectionRef === "0" ? "Outbound" : "Inbound";
+    const dest = Array.isArray(mvj.DestinationName) ? mvj.DestinationName[0] : mvj.DestinationName || "?";
+    const arrival = call.ExpectedArrivalTime || call.AimedArrivalTime;
+    const mins = arrival ? Math.max(0, Math.round((new Date(arrival) - new Date()) / 60000)) : null;
+    return { route: arrRoute, direction: dir, destination: dest, minutes: mins, stopsAway: call.NumberOfStopsAway ?? null, delay: call.Extensions?.Deviation?.Delay || 0 };
+  }).filter(Boolean);
+}
+
+function stopPopupHtml(stop, route, bodyHtml) {
+  return `<div class="stop-popup"><b>${escHtml(stop.name)}</b><br/><span class="stop-popup-id">${escHtml(stop.id)}</span> <span class="stop-popup-route">${escHtml(route)}</span>${bodyHtml}</div>`;
+}
+
+function stopArrivalsHtml(arrivals) {
+  if (arrivals.length === 0) return `<div class="stop-no-arrivals">No upcoming arrivals</div>`;
+  return arrivals.map((a) => {
+    const mc = a.minutes <= 1 ? "arriving" : a.minutes <= 5 ? "soon" : "";
+    const ml = a.minutes === 0 ? "Now" : a.minutes;
+    const dc = delayColor(a.delay);
+    return `<div class="stop-arrival-row">
+      <span class="stop-arrival-mins ${mc}">${ml}${a.minutes > 0 ? '<span class="stop-arrival-unit">min</span>' : ''}</span>
+      <span class="stop-arrival-dest">${escHtml(a.destination)}</span>
+      <span class="stop-arrival-dir">${escHtml(a.direction)}</span>
+      ${a.stopsAway != null ? `<span class="stop-arrival-stops">${a.stopsAway} stops</span>` : ''}
+      ${dc ? `<span class="stop-arrival-delay" style="color:${dc}">+${Math.round((a.delay || 0) / 60)}m</span>` : ''}
+    </div>`;
+  }).join("");
+}
+
+// Opens the stop popup, loads live arrivals into it, and wires the
+// Directions / + Track buttons with real listeners (inline onclick with
+// string args breaks the html attribute on the first quote).
+function showStopArrivalsPopup(map, popupRef, stop, route) {
+  if (popupRef.current) popupRef.current.remove();
+  const popup = new mapboxgl.Popup({ offset: 10, maxWidth: "280px", className: "stop-click-popup" })
+    .setLngLat([stop.lon, stop.lat])
+    .setHTML(stopPopupHtml(stop, route, `<div class="stop-arrivals-loading"><div class="spinner-sm"></div>Loading arrivals...</div>`))
+    .addTo(map);
+  popupRef.current = popup;
+  fetch(`/api/arrivals/${encodeURIComponent(stop.id)}?route=${encodeURIComponent(route)}`)
+    .then((r) => r.json())
+    .then((data) => {
+      if (!popup.isOpen()) return;
+      const arrivals = parseSiriStopArrivals(data);
+      const body = `<div class="stop-arrivals">${stopArrivalsHtml(arrivals)}</div><div style="display:flex;gap:6px;margin-top:8px"><button class="stop-directions-btn" data-action="directions">Directions</button><button class="stop-directions-btn" data-action="track">+ Track</button></div>`;
+      popup.setHTML(stopPopupHtml(stop, route, body));
+      const el = popup.getElement();
+      el.querySelector('[data-action="directions"]')?.addEventListener("click", () => window.__walkToStop?.(stop.lat, stop.lon, stop.name));
+      el.querySelector('[data-action="track"]')?.addEventListener("click", (e) => window.__quickAddStop?.(stop.id, stop.name, route, e.currentTarget));
+    })
+    .catch(() => {
+      if (!popup.isOpen()) return;
+      popup.setHTML(stopPopupHtml(stop, route, `<div class="stop-arrivals"><div class="stop-no-arrivals">Failed to load arrivals</div></div>`));
+    });
 }
 
 function SearchResults({ results, onSelect, onClose, routeColors }) {
@@ -1036,7 +1106,7 @@ function MyCommute({ trackedRoutes, routeColors }) {
     );
   }
 
-  const tripResults = results?.trip?.results || [];
+  const tripResults = results?.trip?.suggestions || [];
   const walkInfo = results?.walk;
 
   return (
@@ -1062,12 +1132,10 @@ function MyCommute({ trackedRoutes, routeColors }) {
               {tripResults.map((r, i) => (
                 <div key={i} className="commute-option">
                   <span className="commute-route-badges">
-                    {(r.routes || []).map((ro, j) => (
-                      <span key={j} className="commute-route-badge" style={{ background: routeColors[ro] || "#6366f1" }}>{ro}</span>
-                    ))}
+                    <span className="commute-route-badge" style={{ background: routeColors[r.route] || "#6366f1" }}>{r.route}</span>
                   </span>
-                  <span className="commute-walk-time">{r.walkMins || "?"} min walk</span>
-                  <span className="commute-total">~{(r.totalMins || "?")} min</span>
+                  <span className="commute-walk-time">{r.originStop?.name} → {r.destStop?.name}</span>
+                  <span className="commute-total">~{r.totalWalkMin ?? "?"} min walk{r.transferRequired ? " · transfer" : ""}</span>
                 </div>
               ))}
             </div>
@@ -1446,7 +1514,15 @@ function BusMap({ vehicles, polylines, stops, visibleRoutes, trackedRoutes, rout
           onMapMove?.({ lat: c.lat, lng: c.lng, zoom: map.getZoom() });
         }, 300);
       });
-      return () => { if (moveTimer) clearTimeout(moveTimer); map.remove(); };
+      return () => {
+        if (moveTimer) clearTimeout(moveTimer);
+        map.remove();
+        // Reset the ref so StrictMode's dev re-mount recreates the map
+        // instead of hitting the guard above with a destroyed instance.
+        mapRef.current = null;
+        markersRef.current = {};
+        setMapReady(false);
+      };
     } catch (err) {
       console.error("Map init failed:", err);
       setMapError(err.message || "Map failed to load");
@@ -1564,7 +1640,7 @@ function BusMap({ vehicles, polylines, stops, visibleRoutes, trackedRoutes, rout
         }
         const el = document.createElement("div");
         el.className = "stop-marker";
-        el.style.cssText = `width:10px;height:10px;border-radius:50%;background:${color};border:1.5px solid rgba(255,255,255,0.8);cursor:pointer;transition:box-shadow 0.15s,opacity 0.15s;transform-origin:center center;padding:8px;background-clip:content;box-sizing:border-box;`;
+        el.style.cssText = `width:10px;height:10px;border-radius:50%;background:${color};border:1.5px solid rgba(255,255,255,0.8);cursor:pointer;transition:box-shadow 0.15s,opacity 0.15s;transform-origin:center center;padding:8px;background-clip:content-box;box-sizing:border-box;`;
         el.addEventListener("mouseenter", () => {
           el.style.boxShadow = `0 0 0 3px ${color}80`;
           el.style.opacity = "1";
@@ -1575,50 +1651,7 @@ function BusMap({ vehicles, polylines, stops, visibleRoutes, trackedRoutes, rout
         });
         el.addEventListener("click", (e) => {
           e.stopPropagation();
-          if (popupRef.current) popupRef.current.remove();
-          const popup = new mapboxgl.Popup({ offset: 10, maxWidth: "280px", className: "stop-click-popup" })
-            .setLngLat([stop.lon, stop.lat])
-            .setHTML(`<div class="stop-popup"><b>${escHtml(stop.name)}</b><br/><span class="stop-popup-id">${escHtml(stop.id)}</span> <span class="stop-popup-route">${escHtml(route)}</span><div class="stop-arrivals-loading"><div class="spinner-sm"></div>Loading arrivals...</div></div>`)
-            .addTo(map);
-          popupRef.current = popup;
-          fetch(`/api/arrivals/${stop.id}?route=${route}`)
-            .then((r) => r.json())
-            .then((data) => {
-              const delivery = data?.Siri?.ServiceDelivery?.StopMonitoringDelivery;
-              const mon = Array.isArray(delivery) ? delivery[0] : delivery;
-              const visits = mon?.MonitoredStopVisit || [];
-              const arrivals = visits.map((v) => {
-                const mvj = v.MonitoredVehicleJourney;
-                const call = mvj?.MonitoredCall;
-                if (!call) return null;
-                const arrRoute = (mvj.LineRef || "").replace("MTABC_", "").replace("MTA NYCT_", "").replace("MTA_", "").replace(/\+$/, "");
-                const dir = mvj.DirectionRef === "0" ? "Outbound" : "Inbound";
-                const dest = Array.isArray(mvj.DestinationName) ? mvj.DestinationName[0] : mvj.DestinationName || "?";
-                const arrival = call.ExpectedArrivalTime || call.AimedArrivalTime;
-                const mins = arrival ? Math.max(0, Math.round((new Date(arrival) - new Date()) / 60000)) : null;
-                return { route: arrRoute, direction: dir, destination: dest, minutes: mins, stopsAway: call.NumberOfStopsAway ?? null, delay: call.Extensions?.Deviation?.Delay || 0 };
-              }).filter(Boolean);
-              if (!popup.isOpen()) return;
-              const arrivalsHtml = arrivals.length === 0
-                ? `<div class="stop-no-arrivals">No upcoming arrivals</div>`
-                : arrivals.map((a) => {
-                    const mc = a.minutes <= 1 ? "arriving" : a.minutes <= 5 ? "soon" : "";
-                    const ml = a.minutes === 0 ? "Now" : a.minutes;
-                    const dc = delayColor(a.delay);
-                    return `<div class="stop-arrival-row">
-                      <span class="stop-arrival-mins ${mc}">${ml}${a.minutes > 0 ? '<span class="stop-arrival-unit">min</span>' : ''}</span>
-                      <span class="stop-arrival-dest">${escHtml(a.destination)}</span>
-                      <span class="stop-arrival-dir">${escHtml(a.direction)}</span>
-                      ${a.stopsAway != null ? `<span class="stop-arrival-stops">${a.stopsAway} stops</span>` : ''}
-                      ${dc ? `<span class="stop-arrival-delay" style="color:${dc}">+${Math.round((a.delay||0) / 60)}m</span>` : ''}
-                    </div>`;
-                  }).join("");
-              popup.setHTML(`<div class="stop-popup"><b>${escHtml(stop.name)}</b><br/><span class="stop-popup-id">${escHtml(stop.id)}</span> <span class="stop-popup-route">${escHtml(route)}</span><div class="stop-arrivals">${arrivalsHtml}</div><div style="display:flex;gap:6px;margin-top:8px"><button class="stop-directions-btn" onclick="window.__walkToStop&&window.__walkToStop(${stop.lat},${stop.lon},${JSON.stringify(escHtml(stop.name))})">Directions</button><button class="stop-directions-btn" onclick="window.__quickAddStop&&window.__quickAddStop(${JSON.stringify(escHtml(stop.id))},${JSON.stringify(escHtml(stop.name))},${JSON.stringify(escHtml(route))},this)">+ Track</button></div></div>`);
-            })
-            .catch(() => {
-              if (!popup.isOpen()) return;
-              popup.setHTML(`<div class="stop-popup"><b>${escHtml(stop.name)}</b><br/><span class="stop-popup-id">${escHtml(stop.id)}</span> <span class="stop-popup-route">${escHtml(route)}</span><div class="stop-arrivals"><div class="stop-no-arrivals">Failed to load arrivals</div></div></div>`);
-            });
+          showStopArrivalsPopup(map, popupRef, stop, route);
         });
         const marker = new mapboxgl.Marker(el).setLngLat([stop.lon, stop.lat]).addTo(map);
         markersRef.current[`stop-${route}-${stop.id}`] = marker;
@@ -1792,50 +1825,7 @@ function BusMap({ vehicles, polylines, stops, visibleRoutes, trackedRoutes, rout
     if (!map) return;
     map.flyTo({ center: [stop.lon, stop.lat], zoom: 16, duration: 1000 });
     setTimeout(() => {
-      if (popupRef.current) popupRef.current.remove();
-      const popup = new mapboxgl.Popup({ offset: 10, maxWidth: "280px", className: "stop-click-popup" })
-        .setLngLat([stop.lon, stop.lat])
-        .setHTML(`<div class="stop-popup"><b>${escHtml(stop.name)}</b><br/><span class="stop-popup-id">${escHtml(stop.id)}</span> <span class="stop-popup-route">${escHtml(stop.route)}</span><div class="stop-arrivals-loading"><div class="spinner-sm"></div>Loading arrivals...</div></div>`)
-        .addTo(map);
-      popupRef.current = popup;
-      fetch(`/api/arrivals/${stop.id}?route=${stop.route}`)
-        .then((r) => r.json())
-        .then((data) => {
-          const delivery = data?.Siri?.ServiceDelivery?.StopMonitoringDelivery;
-          const mon = Array.isArray(delivery) ? delivery[0] : delivery;
-          const visits = mon?.MonitoredStopVisit || [];
-          const arrivals = visits.map((v) => {
-            const mvj = v.MonitoredVehicleJourney;
-            const call = mvj?.MonitoredCall;
-            if (!call) return null;
-            const arrRoute = (mvj.LineRef || "").replace("MTABC_", "").replace("MTA NYCT_", "").replace("MTA_", "").replace(/\+$/, "");
-            const dir = mvj.DirectionRef === "0" ? "Outbound" : "Inbound";
-            const dest = Array.isArray(mvj.DestinationName) ? mvj.DestinationName[0] : mvj.DestinationName || "?";
-            const arrival = call.ExpectedArrivalTime || call.AimedArrivalTime;
-            const mins = arrival ? Math.max(0, Math.round((new Date(arrival) - new Date()) / 60000)) : null;
-            return { route: arrRoute, direction: dir, destination: dest, minutes: mins, stopsAway: call.NumberOfStopsAway ?? null, delay: call.Extensions?.Deviation?.Delay || 0 };
-          }).filter(Boolean);
-          if (!popup.isOpen()) return;
-          const arrivalsHtml = arrivals.length === 0
-            ? `<div class="stop-no-arrivals">No upcoming arrivals</div>`
-            : arrivals.map((a) => {
-                const mc = a.minutes <= 1 ? "arriving" : a.minutes <= 5 ? "soon" : "";
-                const ml = a.minutes === 0 ? "Now" : a.minutes;
-                const dc = delayColor(a.delay);
-                return `<div class="stop-arrival-row">
-                  <span class="stop-arrival-mins ${mc}">${ml}${a.minutes > 0 ? '<span class="stop-arrival-unit">min</span>' : ''}</span>
-                  <span class="stop-arrival-dest">${escHtml(a.destination)}</span>
-                  <span class="stop-arrival-dir">${escHtml(a.direction)}</span>
-                  ${a.stopsAway != null ? `<span class="stop-arrival-stops">${a.stopsAway} stops</span>` : ''}
-                  ${dc ? `<span class="stop-arrival-delay" style="color:${dc}">+${Math.round((a.delay||0) / 60)}m</span>` : ''}
-                </div>`;
-              }).join("");
-          popup.setHTML(`<div class="stop-popup"><b>${escHtml(stop.name)}</b><br/><span class="stop-popup-id">${escHtml(stop.id)}</span> <span class="stop-popup-route">${escHtml(stop.route)}</span><div class="stop-arrivals">${arrivalsHtml}</div><button class="stop-directions-btn" onclick="window.__walkToStop&&window.__walkToStop(${stop.lat},${stop.lon},${JSON.stringify(escHtml(stop.name))})">Directions</button></div>`);
-        })
-        .catch(() => {
-          if (!popup.isOpen()) return;
-          popup.setHTML(`<div class="stop-popup"><b>${escHtml(stop.name)}</b><br/><span class="stop-popup-id">${escHtml(stop.id)}</span> <span class="stop-popup-route">${escHtml(stop.route)}</span><div class="stop-arrivals"><div class="stop-no-arrivals">Failed to load arrivals</div></div></div>`);
-        });
+      showStopArrivalsPopup(map, popupRef, stop, stop.route);
     }, 1200);
   }, []);
 
@@ -2003,8 +1993,11 @@ export default function App() {
     if (!soundEnabled) return;
     stops.forEach((stop) => {
       (stop.arrivals || []).forEach((a) => {
-        if (a.minutes != null && a.minutes <= 2 && a.minutes >= 0) {
-          const key = `${stop.stopId}-${a.route}-${a.destination}`;
+        if (a.minutes == null) return;
+        const key = `snd:${stop.stopId}-${a.route}-${a.destination}`;
+        // Re-arm once this arrival has passed so the next bus alerts too
+        if (a.minutes > 4) { delete notifTimersRef.current[key]; return; }
+        if (a.minutes <= 2 && a.minutes >= 0) {
           if (!notifTimersRef.current[key]) {
             notifTimersRef.current[key] = true;
             try {
@@ -2036,7 +2029,7 @@ export default function App() {
   const routeColorsRef = useRef(routeColors);
   useEffect(() => { routeColorsRef.current = routeColors; }, [routeColors]);
   const stopsRef = useRef(stops);
-  stopsRef.current = stops;
+  useEffect(() => { stopsRef.current = stops; }, [stops]);
   useEffect(() => {
     const interval = setInterval(() => {
       const allArrivals = [];
@@ -2220,14 +2213,21 @@ export default function App() {
     if (notifPermission !== "granted") return;
     stops.forEach((stop) => {
       stop.arrivals?.forEach((a) => {
-        if (a.minutes != null && a.minutes <= 2 && a.minutes >= 0) {
-          const key = `${stop.stopId}-${a.route}-${a.destination}`;
+        if (a.minutes == null) return;
+        const key = `ntf:${stop.stopId}-${a.route}-${a.destination}`;
+        // Re-arm once this arrival has passed so the next bus notifies too
+        if (a.minutes > 4) { delete notifTimersRef.current[key]; return; }
+        if (a.minutes <= 2 && a.minutes >= 0) {
           if (!notifTimersRef.current[key]) {
             notifTimersRef.current[key] = true;
-            new Notification(`${a.route} arriving in 2 min`, {
-              body: `${stop.name} → ${a.destination}`,
-              icon: "/favicon.svg",
-            });
+            try {
+              new Notification(`${a.route} arriving in ${a.minutes <= 0 ? "under a" : a.minutes} min`, {
+                body: `${stop.name} → ${a.destination}`,
+                icon: "/favicon.svg",
+              });
+            } catch {
+              // Notification constructor throws on some mobile browsers
+            }
           }
         }
       });
@@ -2354,8 +2354,23 @@ export default function App() {
     setMapState({ lat: view.lat, lng: view.lng, zoom: view.zoom });
   };
 
-  // Fetch data
-  const fetchData = useCallback(async () => {
+  // Fetch data — vehicles are the fast-moving data (15s); arrivals and
+  // alerts refresh at 30s to keep SIRI/GTFS load reasonable.
+  const fetchVehicles = useCallback(async () => {
+    try {
+      const routesQuery = trackedRoutes.join(",");
+      const res = await fetch(`/api/vehicles?routes=${encodeURIComponent(routesQuery)}`);
+      const data = await res.json();
+      setVehicles(data.vehicles || []);
+      setLastRefresh(new Date());
+      setFetchError(null);
+    } catch (err) {
+      console.error("Vehicles fetch failed:", err);
+      setFetchError("Unable to fetch bus data. Retrying...");
+    }
+  }, [trackedRoutes]);
+
+  const fetchArrivalsAndAlerts = useCallback(async () => {
     try {
       const routesQuery = trackedRoutes.join(",");
       const stopsQuery = trackedRoutes.map(route => {
@@ -2366,24 +2381,18 @@ export default function App() {
         return null;
       }).filter(Boolean).join("|");
       const arrivalsUrl = `/api/arrivals?routes=${encodeURIComponent(routesQuery)}${stopsQuery ? `&stops=${encodeURIComponent(stopsQuery)}` : ""}`;
-      const [alertsRes, stopsRes, vehiclesRes] = await Promise.all([
+      const [alertsRes, stopsRes] = await Promise.all([
         fetch("/api/alerts"),
         fetch(arrivalsUrl),
-        fetch(`/api/vehicles?routes=${encodeURIComponent(routesQuery)}`),
       ]);
       const alertsData = await alertsRes.json();
       const stopsData = await stopsRes.json();
-      const vehiclesData = await vehiclesRes.json();
       setAlerts(alertsData.alerts || []);
       setStops(stopsData.stops || []);
-      setVehicles(vehiclesData.vehicles || []);
-      setLastRefresh(new Date());
       setFetchError(null);
     } catch (err) {
-      console.error("Fetch failed:", err);
+      console.error("Arrivals/alerts fetch failed:", err);
       setFetchError("Unable to fetch bus data. Retrying...");
-    } finally {
-      setLoading(false);
     }
   }, [trackedRoutes, selectedStops]);
 
@@ -2412,12 +2421,19 @@ export default function App() {
 
   useEffect(() => {
     setLoading(true);
-    fetchData();
+    Promise.allSettled([fetchVehicles(), fetchArrivalsAndAlerts()]).finally(() => setLoading(false));
+    const vehicleInterval = setInterval(fetchVehicles, MAP_REFRESH);
+    const dataInterval = setInterval(fetchArrivalsAndAlerts, DATA_REFRESH);
+    return () => { clearInterval(vehicleInterval); clearInterval(dataInterval); };
+  }, [fetchVehicles, fetchArrivalsAndAlerts]);
+
+  // Polylines and stops are static (cached server-side for an hour) —
+  // fetch only when the tracked routes change, never on an interval.
+  // Refetching them every 15s was tearing down and re-adding every map
+  // layer, flickering the route lines.
+  useEffect(() => {
     fetchPolylinesAndStops();
-    const dataInterval = setInterval(fetchData, DATA_REFRESH);
-    const mapInterval = setInterval(fetchPolylinesAndStops, MAP_REFRESH);
-    return () => { clearInterval(dataInterval); clearInterval(mapInterval); };
-  }, [fetchData, fetchPolylinesAndStops]);
+  }, [fetchPolylinesAndStops]);
 
   // Close search on outside click
   useEffect(() => {
@@ -2724,7 +2740,7 @@ export default function App() {
       </div>
 
       <div className="footer">
-        Data from MTA Bus Time API · Map polls every 15s · Auto-refreshes every 30s
+        Data from MTA Bus Time API · Buses update every 15s · Arrivals &amp; alerts every 30s
       </div>
 
       {pickerRoute && pickerStops.length > 0 && (

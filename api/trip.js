@@ -22,7 +22,7 @@ async function fetchStopsForRoute(route) {
 }
 
 export default async function handler(req, res) {
-  cors(res);
+  cors(req, res);
   try {
     const { originLat, originLng, destLat, destLng } = req.query;
     const oLat = parseFloat(originLat), oLng = parseFloat(originLng);

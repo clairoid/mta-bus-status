@@ -1,8 +1,15 @@
 import { cors, fetchBuffer, protobuf } from "./lib.js";
 
+let cached = null;
+let cachedAt = 0;
+const CACHE_MS = 60_000;
+
 export default async function handler(req, res) {
-  cors(res);
+  cors(req, res);
   try {
+    if (cached && Date.now() - cachedAt < CACHE_MS) {
+      return res.json({ alerts: cached });
+    }
     const buffer = await fetchBuffer(`https://gtfsrt.prod.obanyc.com/alerts?key=${process.env.MTA_BUSTIME_KEY}`);
     const feed = protobuf.transit_realtime.FeedMessage.decode(buffer);
     const now = Math.floor(Date.now() / 1000);
@@ -30,6 +37,12 @@ export default async function handler(req, res) {
         activePeriods: activePeriods.map((p) => ({ start: p.start ? parseInt(p.start) : null, end: p.end ? parseInt(p.end) : null })),
       });
     }
+    cached = alerts;
+    cachedAt = Date.now();
     res.json({ alerts });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    // Serve stale alerts rather than erroring if the feed hiccups
+    if (cached) return res.json({ alerts: cached });
+    res.status(500).json({ error: err.message });
+  }
 }
