@@ -1,7 +1,7 @@
 import { cors, fetchJSON, SIRI_BASE, API_KEY, routeApiId } from "../lib.js";
 
 export default async function handler(req, res) {
-  cors(res);
+  cors(req, res);
   try {
     const stopId = req.query.stopId;
     const route = req.query.route;

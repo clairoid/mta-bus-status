@@ -16,21 +16,26 @@ export const FAVORITES = [
 
 export const DEFAULT_ROUTES = ["B6", "B8", "B15"];
 
-export function cors(res) {
-  const allowed = ["https://mta.spis.dev", "http://localhost:5173", "http://localhost:3000"];
-  // Note: origin must be checked from req.headers.origin in the handler
-  // This wildcard is used as fallback when origin is not available
-  res.setHeader("Access-Control-Allow-Origin", "*");
+const ALLOWED_ORIGINS = ["https://mta.spis.dev", "http://localhost:5173", "http://localhost:3000"];
+
+export function cors(req, res) {
+  const origin = req?.headers?.origin;
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+  res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 }
 
 // Express routes (BM*, BxM*) use MTABC_ prefix, local/SBS use MTA NYCT_
-// SBS routes use + suffix in MTA API (e.g. B44-SBS -> MTA NYCT_B44+)
+// SBS routes use + suffix in MTA API (e.g. B44-SBS -> MTA NYCT_B44+).
+// The -SBS check must run first: Bronx SBS routes (BX12-SBS) are NYCT +
+// routes, not MTABC.
 export function routeApiId(route) {
   const r = route.toUpperCase();
-  if (r.startsWith("BM") || r.startsWith("BX")) return `MTABC_${r}`;
   if (r.endsWith("-SBS")) return `MTA NYCT_${r.replace(/-SBS$/, "")}+`;
+  if (r.startsWith("BM") || r.startsWith("BX")) return `MTABC_${r}`;
   return `MTA NYCT_${r}`;
 }
 

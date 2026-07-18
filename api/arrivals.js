@@ -2,6 +2,8 @@ import { FAVORITES, cors, fetchJSON, SIRI_BASE, API_KEY, routeApiId, oneBusAwayI
 
 function stripRoutePrefix(s, originalRoute) {
   let clean = s.replace("MTABC_", "").replace("MTA NYCT_", "").replace("MTA_", "");
+  // SIRI uses a trailing + for SBS routes (B44+); the app uses -SBS (B44-SBS)
+  if (clean.endsWith("+")) clean = clean.slice(0, -1) + "-SBS";
   if (originalRoute && originalRoute.toUpperCase().endsWith("-SBS") && !clean.toUpperCase().endsWith("-SBS")) {
     clean += "-SBS";
   }
@@ -47,7 +49,7 @@ async function getStopsForRoute(route) {
 }
 
 export default async function handler(req, res) {
-  cors(res);
+  cors(req, res);
   try {
     const routesParam = req.query.routes || "";
     const extraRoutes = routesParam ? routesParam.split(",").map(r => r.trim().toUpperCase()).filter(Boolean) : [];

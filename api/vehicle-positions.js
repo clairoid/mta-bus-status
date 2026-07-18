@@ -1,7 +1,7 @@
 import { DEFAULT_ROUTES, cors, fetchBuffer, protobuf, API_KEY } from "./lib.js";
 
 export default async function handler(req, res) {
-  cors(res);
+  cors(req, res);
   try {
     const routesParam = req.query.routes;
     const routes = routesParam ? routesParam.split(",").map(r => r.toUpperCase().trim()).filter(Boolean) : DEFAULT_ROUTES;
@@ -21,7 +21,7 @@ export default async function handler(req, res) {
         id: (vp.vehicle?.id || "").replace("MTABC_", "").replace("MTA NYCT_", "").replace("MTA_", ""),
         route: routeId, lat: vp.position?.latitude, lon: vp.position?.longitude,
         bearing: vp.position?.bearing || 0, speed: vp.position?.speed || null,
-        timestamp: ts || null, occupancy: vp.occupancy_status || null,
+        timestamp: ts || null, occupancy: vp.occupancyStatus ?? null,
       });
     }
     res.json({ vehicles, count: vehicles.length, routes });

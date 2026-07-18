@@ -178,7 +178,7 @@ const SUBWAY_STATIONS = [
 ];
 
 export default async function handler(req, res) {
-  cors(res);
+  cors(req, res);
   try {
     const lat = parseFloat(req.query.lat);
     const lon = parseFloat(req.query.lon);
