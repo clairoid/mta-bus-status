@@ -1,0 +1,58 @@
+@import "tailwindcss";
+@import "./lib/theme/tokens.css";
+
+@theme inline {
+  --color-shell: var(--shell);
+  --color-sidebar: var(--sidebar);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-border-outer: var(--borderOuter);
+  --color-text: var(--text);
+  --color-text2: var(--text2);
+  --color-dim: var(--dim);
+  --color-chip: var(--chip);
+  --color-chip-text: var(--chipText);
+  --color-chip-soft: var(--chipSoft);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-green: var(--green);
+  --color-green-soft: var(--green-soft);
+  --color-yellow: var(--yellow);
+  --color-amber: var(--amber);
+  --color-red: var(--red);
+  --color-red-strong: var(--red-strong);
+
+  --radius-card: var(--card-radius);
+  --radius-pill: var(--pill-radius);
+  --radius-control: var(--control-radius);
+  --radius-shell: var(--shell-radius);
+
+  --shadow-shell: var(--shell-shadow);
+  --shadow-drawer: var(--drawer-shadow);
+  --shadow-popover: var(--popover-shadow);
+
+  --font-sans: "Inter", -apple-system, sans-serif;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background: var(--color-shell);
+    color: var(--color-text);
+  }
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.3px;
+  }
+}
