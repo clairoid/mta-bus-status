@@ -18,6 +18,8 @@ interface AppState {
   setTheme: (theme: Theme) => void;
   view: "map" | "list";
   setView: (view: "map" | "list") => void;
+  heatmap: boolean;
+  toggleHeatmap: () => void;
 
   // Route/stop filters (persisted)
   mapRoutes: string[];
@@ -103,6 +105,8 @@ export const useAppStore = create<AppState>()(
       setTheme: (theme) => set({ theme }),
       view: "list",
       setView: (view) => set({ view }),
+      heatmap: false,
+      toggleHeatmap: () => set((s) => ({ heatmap: !s.heatmap })),
 
       mapRoutes: ["B6", "B8", "B15"],
       setMapRoutes: (mapRoutes) => set({ mapRoutes }),
@@ -198,6 +202,7 @@ export const useAppStore = create<AppState>()(
       partialize: (s) => ({
         theme: s.theme,
         view: s.view,
+        heatmap: s.heatmap,
         mapRoutes: s.mapRoutes,
         fav: s.fav,
         tracked: s.tracked,

@@ -9,8 +9,12 @@ import { StopCardSkeleton } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
 import { RouteBadge } from "../components/ui/RouteBadge";
 import { CountdownTime } from "../components/ui/CountdownTime";
+import { LiveMap } from "../components/map/LiveMap";
 import { useArrivals, minutesToSecs } from "../hooks/useArrivals";
 import { useAlerts } from "../hooks/useAlerts";
+import { useVehicles } from "../hooks/useVehicles";
+import { useRouteGeometry } from "../hooks/useRouteGeometry";
+import { useOnDemandStop } from "../hooks/useOnDemandStop";
 import { useAppStore } from "../store/useAppStore";
 import { ROUTES } from "../lib/data/mock/mta";
 import { routeColor } from "../lib/data/routeColors";
@@ -27,9 +31,17 @@ export function Dashboard() {
   const mapRoutes = useAppStore((s) => s.mapRoutes);
   const toggleMapRoute = useAppStore((s) => s.toggleMapRoute);
   const setSelectedStop = useAppStore((s) => s.setSelectedStop);
+  const heatmap = useAppStore((s) => s.heatmap);
+  const toggleHeatmap = useAppStore((s) => s.toggleHeatmap);
 
   const { stops, loading } = useArrivals(mapRoutes);
   const { alerts } = useAlerts();
+
+  // Only fetch vehicles + route geometry while the map view is active.
+  const mapActive = view === "map";
+  const { vehicles } = useVehicles(mapActive ? mapRoutes : []);
+  const geometry = useRouteGeometry(mapActive ? mapRoutes : []);
+  const { drawerStops, openStop } = useOnDemandStop();
 
   const flat = useMemo(() => flattenDepartures(stops), [stops]);
   const hero = flat[0];
@@ -49,9 +61,9 @@ export function Dashboard() {
 
   return (
     <PageShell title="Dashboard" liveCount={liveCount}>
-      <div className="flex h-full gap-0">
+      <div className="flex h-full min-h-0 gap-0">
         {/* left: toolbar + map/list */}
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <div className="mb-4 flex items-center gap-2.5">
             <SegmentedControl
               options={[
@@ -73,10 +85,27 @@ export function Dashboard() {
                 />
               ))}
             </div>
+            {view === "map" && (
+              <button
+                type="button"
+                onClick={toggleHeatmap}
+                className={`shrink-0 rounded-control px-3 py-1.5 text-xs font-bold transition-colors ${
+                  heatmap ? "bg-accent-soft text-accent" : "bg-card text-text2 hover:bg-chip"
+                }`}
+              >
+                🔥 Heatmap
+              </button>
+            )}
           </div>
 
           {view === "map" ? (
-            <MapPlaceholder />
+            <LiveMap
+              vehicles={vehicles}
+              geometry={geometry}
+              visibleRoutes={mapRoutes}
+              heatmapEnabled={heatmap}
+              onOpenStop={openStop}
+            />
           ) : loading ? (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -146,7 +175,7 @@ export function Dashboard() {
           </div>
         </aside>
       </div>
-      <StopDrawerHost stops={stops} />
+      <StopDrawerHost stops={[...stops, ...drawerStops]} />
     </PageShell>
   );
 }
@@ -200,18 +229,6 @@ function DashAlertCard({ alert }: { alert: Alert }) {
         </span>
       </div>
       <div className="line-clamp-2 text-xs leading-relaxed text-text2">{cleanText(alert.header)}</div>
-    </div>
-  );
-}
-
-function MapPlaceholder() {
-  return (
-    <div className="relative flex flex-1 items-center justify-center overflow-hidden rounded-[16px] bg-[#0d0e14]">
-      <div className="text-center">
-        <div className="text-3xl">🗺️</div>
-        <p className="mt-2 text-sm font-semibold text-white/80">Live map arrives in the map phase</p>
-        <p className="mt-1 text-xs text-white/50">Real Mapbox vehicles, heatmap & route lines</p>
-      </div>
     </div>
   );
 }

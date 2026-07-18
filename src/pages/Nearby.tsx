@@ -4,11 +4,10 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { NearbyCard, type NearbyStopView } from "../components/cards/NearbyCard";
 import { StopDrawerHost } from "../components/overlays/StopDrawerHost";
 import { useGeolocation, type GeoCoords } from "../hooks/useGeolocation";
+import { useOnDemandStop } from "../hooks/useOnDemandStop";
 import { fetchStopsForRoute } from "../lib/data/real/stops";
-import { fetchArrivals } from "../lib/data/real/arrivals";
 import { haversineMeters } from "../lib/data/format";
 import { useAppStore } from "../store/useAppStore";
-import type { StopArrivals } from "../lib/data/types";
 
 // README Nearby: distance-labeled stop cards with route chips; click opens
 // stop detail. Real geolocation + /api/stops/:route (per active route),
@@ -16,12 +15,11 @@ import type { StopArrivals } from "../lib/data/types";
 // on demand and opens the drawer.
 export function Nearby() {
   const mapRoutes = useAppStore((s) => s.mapRoutes);
-  const setSelectedStop = useAppStore((s) => s.setSelectedStop);
   const { findMe, loading: geoLoading, error: geoError } = useGeolocation();
+  const { drawerStops, openStop } = useOnDemandStop();
 
   const [nearby, setNearby] = useState<NearbyStopView[] | null>(null);
   const [searching, setSearching] = useState(false);
-  const [drawerStops, setDrawerStops] = useState<StopArrivals[]>([]);
 
   const locate = useCallback(() => {
     findMe(async (coords: GeoCoords) => {
@@ -64,27 +62,12 @@ export function Nearby() {
     });
   }, [findMe, mapRoutes]);
 
-  const openStop = useCallback(
-    async (stopId: string) => {
+  const onCardOpen = useCallback(
+    (stopId: string) => {
       const stop = nearby?.find((s) => s.stopId === stopId);
-      if (!stop) return;
-      // Fetch this stop's live arrivals on demand, then open the shared drawer.
-      try {
-        const result = await fetchArrivals([stop.routes[0]], { [stop.routes[0]]: [stopId] });
-        const withData: StopArrivals =
-          result.find((s) => s.stopId === stopId) ??
-          { stopId, name: stop.name, route: stop.routes[0], arrivals: [] };
-        setDrawerStops((prev) => [...prev.filter((s) => s.stopId !== stopId), withData]);
-        setSelectedStop(stopId);
-      } catch {
-        setDrawerStops((prev) => [
-          ...prev.filter((s) => s.stopId !== stopId),
-          { stopId, name: stop.name, route: stop.routes[0], arrivals: [] },
-        ]);
-        setSelectedStop(stopId);
-      }
+      if (stop) openStop(stopId, stop.routes[0], stop.name);
     },
-    [nearby, setSelectedStop]
+    [nearby, openStop]
   );
 
   const busy = geoLoading || searching;
@@ -126,7 +109,7 @@ export function Nearby() {
       ) : (
         <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 min-[1080px]:grid-cols-3">
           {nearby.map((stop) => (
-            <NearbyCard key={stop.stopId} stop={stop} onOpen={openStop} />
+            <NearbyCard key={stop.stopId} stop={stop} onOpen={onCardOpen} />
           ))}
         </div>
       )}
