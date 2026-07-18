@@ -14,34 +14,12 @@ import { useAlerts } from "../hooks/useAlerts";
 import { useAppStore } from "../store/useAppStore";
 import { ROUTES } from "../lib/data/mock/mta";
 import { routeColor } from "../lib/data/routeColors";
-import { effectLabel, effectSeverity, severityColors } from "../lib/data/alertFormat";
-import type { Alert, StopArrivals } from "../lib/data/types";
+import { cleanText, effectLabel, effectSeverity, severityColors } from "../lib/data/alertFormat";
+import { flattenDepartures } from "../lib/data/departures";
+import type { Alert } from "../lib/data/types";
+import type { Departure } from "../components/cards/DepartureRow";
 
 const AVAILABLE_ROUTES = Object.keys(ROUTES);
-
-interface FlatArrival {
-  stopId: string;
-  stopName: string;
-  route: string;
-  destination: string;
-  minutes: number | null;
-}
-
-function flattenArrivals(stops: StopArrivals[]): FlatArrival[] {
-  const flat: FlatArrival[] = [];
-  for (const stop of stops) {
-    for (const a of stop.arrivals) {
-      flat.push({
-        stopId: stop.stopId,
-        stopName: stop.name,
-        route: a.route,
-        destination: a.destination,
-        minutes: a.minutes,
-      });
-    }
-  }
-  return flat.sort((a, b) => (a.minutes ?? Infinity) - (b.minutes ?? Infinity));
-}
 
 export function Dashboard() {
   const view = useAppStore((s) => s.view);
@@ -53,7 +31,7 @@ export function Dashboard() {
   const { stops, loading } = useArrivals(mapRoutes);
   const { alerts } = useAlerts();
 
-  const flat = useMemo(() => flattenArrivals(stops), [stops]);
+  const flat = useMemo(() => flattenDepartures(stops), [stops]);
   const hero = flat[0];
   const departures = flat.slice(0, 5);
   const liveCount = flat.length;
@@ -173,7 +151,7 @@ export function Dashboard() {
   );
 }
 
-function HeroCard({ hero }: { hero: FlatArrival | undefined }) {
+function HeroCard({ hero }: { hero: Departure | undefined }) {
   return (
     <div>
       <Overline>Next arrival</Overline>
@@ -221,7 +199,7 @@ function DashAlertCard({ alert }: { alert: Alert }) {
           {effectLabel(alert.effect)}
         </span>
       </div>
-      <div className="text-xs leading-relaxed text-text2">{alert.header}</div>
+      <div className="line-clamp-2 text-xs leading-relaxed text-text2">{cleanText(alert.header)}</div>
     </div>
   );
 }

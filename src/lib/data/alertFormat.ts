@@ -51,3 +51,39 @@ export function causeLabel(cause: string): string {
 export function primaryRoute(alert: Alert): string {
   return alert.routes[0] ?? "";
 }
+
+// The MTA GTFS-RT alert text embeds HTML tags (<p>) and entities
+// (&#x200c; zero-width joiners, &amp;, etc.). Strip tags and decode
+// entities for clean display.
+export function cleanText(raw: string): string {
+  if (!raw) return "";
+  const stripped = raw.replace(/<[^>]+>/g, " ");
+  const el = document.createElement("textarea");
+  el.innerHTML = stripped;
+  return el.value.replace(/‌/g, "").replace(/\s+/g, " ").trim();
+}
+
+const SEVERITY_ACCENTS: Record<Severity, string> = {
+  crit: "#ef4444",
+  warn: "var(--yellow)",
+  info: "var(--accent)",
+  ok: "#22c55e",
+};
+
+export function severityAccent(sev: Severity): string {
+  return SEVERITY_ACCENTS[sev];
+}
+
+// GTFS-RT gives no explicit "posted" time; derive human timing from the
+// alert's active period(s) and degrade gracefully when absent (per plan).
+export function activePeriodLabel(alert: Alert): string {
+  const period = alert.activePeriods[0];
+  if (!period || (period.start == null && period.end == null)) return "Ongoing";
+  const now = Date.now() / 1000;
+  const { start, end } = period;
+  if (start != null && now < start) {
+    return `Starts ${new Date(start * 1000).toLocaleDateString(undefined, { month: "short", day: "numeric" })}`;
+  }
+  if (end != null && now > end) return "Ended";
+  return "Active now";
+}

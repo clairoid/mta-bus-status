@@ -1,7 +1,10 @@
+import { useMemo } from "react";
 import { NAV_ENTRIES, SETTINGS_ENTRY } from "../../lib/nav";
 import { NavItem } from "../cards/NavItem";
 import { IconButton } from "../ui/IconButton";
 import { useTheme } from "../../lib/theme/theme-context";
+import { useNotifications } from "../../hooks/useNotifications";
+import { useAppStore } from "../../store/useAppStore";
 
 interface SidebarProps {
   iconOnly: boolean;
@@ -9,6 +12,13 @@ interface SidebarProps {
 
 export function Sidebar({ iconOnly }: SidebarProps) {
   const { theme, toggleTheme } = useTheme();
+  const { notifications } = useNotifications();
+  const readNotifs = useAppStore((s) => s.readNotifs);
+
+  const unreadCount = useMemo(
+    () => notifications.filter((n) => n.unread && !readNotifs[String(n.id)]).length,
+    [notifications, readNotifs]
+  );
 
   return (
     <aside
@@ -25,7 +35,12 @@ export function Sidebar({ iconOnly }: SidebarProps) {
 
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 [scrollbar-width:none]">
         {NAV_ENTRIES.map((entry) => (
-          <NavItem key={entry.id} entry={entry} iconOnly={iconOnly} />
+          <NavItem
+            key={entry.id}
+            entry={entry}
+            iconOnly={iconOnly}
+            badge={entry.id === "notifications" ? unreadCount : undefined}
+          />
         ))}
       </nav>
 
