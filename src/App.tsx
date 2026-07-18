@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { ThemeProvider } from "./lib/theme/ThemeProvider";
 import { useTheme } from "./lib/theme/theme-context";
 import { AccessibilityProvider } from "./lib/theme/AccessibilityProvider";
+import { AuthProvider } from "./lib/supabase/AuthProvider";
+import { SyncProvider } from "./lib/supabase/SyncProvider";
 import { TickProvider } from "./hooks/useTick";
 import { useOnlineStatus } from "./hooks/useOnlineStatus";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
@@ -100,15 +102,19 @@ function AppContent() {
 export function App() {
   return (
     <BrowserRouter>
-      <ThemeProvider>
-        <AccessibilityProvider>
-          <TickProvider>
-            <ToastProvider>
-              <AppContent />
-            </ToastProvider>
-          </TickProvider>
-        </AccessibilityProvider>
-      </ThemeProvider>
+      <AuthProvider>
+        <SyncProvider>
+          <ThemeProvider>
+            <AccessibilityProvider>
+              <TickProvider>
+                <ToastProvider>
+                  <AppContent />
+                </ToastProvider>
+              </TickProvider>
+            </AccessibilityProvider>
+          </ThemeProvider>
+        </SyncProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

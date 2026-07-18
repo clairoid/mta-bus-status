@@ -100,6 +100,28 @@ interface AppState {
 
 const MAX_RECENT_TRIPS = 5;
 
+// Single source of truth for which state keys are durable — used by both the
+// localStorage persist (above) and the Supabase sync layer.
+export const PERSISTED_KEYS = [
+  "theme", "view", "heatmap", "mapRoutes", "fav", "tracked", "notify",
+  "readNotifs", "alertFilter", "savedViews", "routeAlerts", "tripFrom",
+  "tripTo", "recentTrips", "sound", "pushArrivals", "pushAlerts",
+  "pushWeekly", "a11y", "textSize",
+] as const satisfies readonly (keyof AppState)[];
+
+export type PersistedState = Pick<AppState, (typeof PERSISTED_KEYS)[number]>;
+
+// Snapshot the durable slice of the store (for pushing to Supabase).
+export function snapshotPersisted(): PersistedState {
+  const s = useAppStore.getState();
+  return Object.fromEntries(PERSISTED_KEYS.map((k) => [k, s[k]])) as PersistedState;
+}
+
+// Apply a durable slice back onto the store (hydrate from Supabase).
+export function hydratePersisted(partial: Partial<PersistedState>) {
+  useAppStore.setState(partial as Partial<AppState>);
+}
+
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
@@ -201,28 +223,8 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: "mta-bus-status-store",
-      partialize: (s) => ({
-        theme: s.theme,
-        view: s.view,
-        heatmap: s.heatmap,
-        mapRoutes: s.mapRoutes,
-        fav: s.fav,
-        tracked: s.tracked,
-        notify: s.notify,
-        readNotifs: s.readNotifs,
-        alertFilter: s.alertFilter,
-        savedViews: s.savedViews,
-        routeAlerts: s.routeAlerts,
-        tripFrom: s.tripFrom,
-        tripTo: s.tripTo,
-        recentTrips: s.recentTrips,
-        sound: s.sound,
-        pushArrivals: s.pushArrivals,
-        pushAlerts: s.pushAlerts,
-        pushWeekly: s.pushWeekly,
-        a11y: s.a11y,
-        textSize: s.textSize,
-      }),
+      partialize: (s) =>
+        Object.fromEntries(PERSISTED_KEYS.map((k) => [k, s[k]])) as Partial<AppState>,
     }
   )
 );

@@ -7,7 +7,7 @@ export default defineConfig({
   // Pre-bundle the heavy deps up front so adding an import later doesn't
   // trigger a mid-session re-optimize (which can desync the React singleton).
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', 'zustand', 'mapbox-gl'],
+    include: ['react', 'react-dom', 'react-router-dom', 'zustand', 'mapbox-gl', '@supabase/supabase-js'],
   },
   server: {
     proxy: {
