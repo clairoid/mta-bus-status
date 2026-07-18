@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Theme } from "../lib/theme/theme-context";
+import type { SavedView } from "../lib/data/types";
+import { SAVED_VIEWS } from "../lib/data/mock/mta";
 
 export interface AccessibilitySettings {
   highContrast: boolean;
@@ -59,8 +61,8 @@ interface AppState {
   setHelpOpen: (open: boolean) => void;
 
   // Saved views / route alerts / trip planner (persisted)
-  savedViewIds: string[];
-  addSavedView: (id: string) => void;
+  savedViews: SavedView[];
+  addSavedView: (view: SavedView) => void;
   removeSavedView: (id: string) => void;
   routeAlerts: Record<string, boolean>;
   toggleRouteAlert: (route: string) => void;
@@ -152,10 +154,10 @@ export const useAppStore = create<AppState>()(
       helpOpen: false,
       setHelpOpen: (helpOpen) => set({ helpOpen }),
 
-      savedViewIds: [],
-      addSavedView: (id) => set((s) => ({ savedViewIds: [...s.savedViewIds, id] })),
+      savedViews: SAVED_VIEWS,
+      addSavedView: (view) => set((s) => ({ savedViews: [view, ...s.savedViews] })),
       removeSavedView: (id) =>
-        set((s) => ({ savedViewIds: s.savedViewIds.filter((v) => v !== id) })),
+        set((s) => ({ savedViews: s.savedViews.filter((v) => v.id !== id) })),
       routeAlerts: {},
       toggleRouteAlert: (route) =>
         set((s) => ({ routeAlerts: { ...s.routeAlerts, [route]: !s.routeAlerts[route] } })),
@@ -209,7 +211,7 @@ export const useAppStore = create<AppState>()(
         notify: s.notify,
         readNotifs: s.readNotifs,
         alertFilter: s.alertFilter,
-        savedViewIds: s.savedViewIds,
+        savedViews: s.savedViews,
         routeAlerts: s.routeAlerts,
         tripFrom: s.tripFrom,
         tripTo: s.tripTo,
