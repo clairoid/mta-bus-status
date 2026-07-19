@@ -106,7 +106,7 @@ export function usePushNotifications(): PushState {
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.getSubscription();
     if (!sub) return { error: "Enable notifications first." };
-    const res = await fetch("/api/send-push", {
+    const res = await fetch("/api/push", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

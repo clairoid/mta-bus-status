@@ -6,6 +6,6 @@
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "crons": [
-    { "path": "/api/notify-alerts", "schedule": "0 13 * * *" }
+    { "path": "/api/push", "schedule": "0 13 * * *" }
   ]
 }
