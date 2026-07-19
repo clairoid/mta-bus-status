@@ -14,7 +14,7 @@ import type { StopArrivals } from "../lib/data/types";
 export function LiveArrivals() {
   const mapRoutes = useAppStore((s) => s.mapRoutes);
   const setSelectedStop = useAppStore((s) => s.setSelectedStop);
-  const { stops, loading } = useArrivals(mapRoutes);
+  const { stops, loading, refresh } = useArrivals(mapRoutes);
   const [filter, setFilter] = useState("all");
 
   const liveCount = useMemo(
@@ -32,7 +32,7 @@ export function LiveArrivals() {
   const chips = ["all", ...mapRoutes];
 
   return (
-    <PageShell title="Live Arrivals" liveCount={liveCount}>
+    <PageShell title="Live Arrivals" liveCount={liveCount} onRefresh={refresh}>
       <div className="mb-4 flex gap-2 overflow-x-auto [scrollbar-width:none]">
         {chips.map((c) => (
           <Chip

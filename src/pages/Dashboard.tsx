@@ -34,7 +34,7 @@ export function Dashboard() {
   const heatmap = useAppStore((s) => s.heatmap);
   const toggleHeatmap = useAppStore((s) => s.toggleHeatmap);
 
-  const { stops, loading } = useArrivals(mapRoutes);
+  const { stops, loading, refresh } = useArrivals(mapRoutes);
   const { alerts } = useAlerts();
 
   // Only fetch vehicles + route geometry while the map view is active.
@@ -60,7 +60,7 @@ export function Dashboard() {
   );
 
   return (
-    <PageShell title="Dashboard" liveCount={liveCount}>
+    <PageShell title="Dashboard" liveCount={liveCount} onRefresh={refresh}>
       <div className="flex h-full min-h-0 gap-0">
         {/* left: toolbar + map/list */}
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">

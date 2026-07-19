@@ -3,7 +3,7 @@ import { MOBILE_TABS } from "../../lib/nav";
 
 export function BottomTabBar() {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 flex h-16 items-center justify-around border-t border-border bg-sidebar">
+    <nav className="fixed inset-x-0 bottom-0 z-20 flex min-h-16 items-center justify-around border-t border-border bg-sidebar pb-[env(safe-area-inset-bottom)]">
       {MOBILE_TABS.map((tab) => (
         <NavLink
           key={tab.id}

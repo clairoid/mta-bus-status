@@ -6,6 +6,7 @@ import { RouteBadge } from "../components/ui/RouteBadge";
 import { useTheme } from "../lib/theme/theme-context";
 import { useAppStore } from "../store/useAppStore";
 import { ROUTES } from "../lib/data/mock/mta";
+import { InstallCard } from "../components/pwa/InstallCard";
 
 const ALL_ROUTES = Object.keys(ROUTES);
 
@@ -40,6 +41,7 @@ export function Settings() {
     <PageShell title="Settings">
       <div className="grid max-w-[820px] grid-cols-1 gap-5 min-[860px]:grid-cols-2">
         <div className="space-y-5">
+          <InstallCard />
           <Card title="Appearance">
             <SettingRow
               label="Dark mode"

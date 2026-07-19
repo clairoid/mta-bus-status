@@ -14,7 +14,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex h-screen w-full overflow-hidden bg-shell">
       {!mobile && <Sidebar iconOnly={iconRailSidebar} />}
-      <main className={`flex flex-1 flex-col overflow-hidden ${mobile ? "pb-16" : ""}`}>
+      <main
+        className={`flex flex-1 flex-col overflow-hidden ${
+          mobile ? "pb-[calc(4rem+env(safe-area-inset-bottom))]" : ""
+        }`}
+      >
         {children}
       </main>
       {mobile && <BottomTabBar />}

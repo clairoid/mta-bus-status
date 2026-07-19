@@ -13,7 +13,7 @@ export function TopBar({ title, liveCount }: TopBarProps) {
   const setHelpOpen = useAppStore((s) => s.setHelpOpen);
 
   return (
-    <header className="flex h-16 shrink-0 items-center gap-3 border-b border-border px-4 sm:px-6">
+    <header className="flex min-h-16 shrink-0 items-center gap-3 border-b border-border px-4 pt-[env(safe-area-inset-top)] sm:px-6">
       <h1 className="shrink-0 truncate text-base font-extrabold text-text sm:text-lg">{title}</h1>
       {liveCount !== undefined && (
         <span className="hidden shrink-0 sm:inline-flex">
