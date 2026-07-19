@@ -23,7 +23,13 @@ interface AppState {
   heatmap: boolean;
   toggleHeatmap: () => void;
 
-  // Route/stop filters (persisted)
+  // The lines the user follows — drives every screen's route list. Add/remove
+  // from the "Manage lines" picker (persisted, and synced across devices).
+  myRoutes: string[];
+  addRoute: (route: string) => void;
+  removeRoute: (route: string) => void;
+
+  // Which of myRoutes are currently toggled visible on the dashboard/map.
   mapRoutes: string[];
   setMapRoutes: (routes: string[]) => void;
   toggleMapRoute: (route: string) => void;
@@ -103,7 +109,7 @@ const MAX_RECENT_TRIPS = 5;
 // Single source of truth for which state keys are durable — used by both the
 // localStorage persist (above) and the Supabase sync layer.
 export const PERSISTED_KEYS = [
-  "theme", "view", "heatmap", "mapRoutes", "fav", "tracked", "notify",
+  "theme", "view", "heatmap", "myRoutes", "mapRoutes", "fav", "tracked", "notify",
   "readNotifs", "alertFilter", "savedViews", "routeAlerts", "tripFrom",
   "tripTo", "recentTrips", "sound", "pushArrivals", "pushAlerts",
   "pushWeekly", "a11y", "textSize",
@@ -131,6 +137,22 @@ export const useAppStore = create<AppState>()(
       setView: (view) => set({ view }),
       heatmap: false,
       toggleHeatmap: () => set((s) => ({ heatmap: !s.heatmap })),
+
+      myRoutes: ["B6", "B8", "B15", "B44", "B41"],
+      addRoute: (route) =>
+        set((s) =>
+          s.myRoutes.includes(route)
+            ? s
+            : { myRoutes: [...s.myRoutes, route], mapRoutes: [...s.mapRoutes, route] }
+        ),
+      removeRoute: (route) =>
+        set((s) => ({
+          myRoutes: s.myRoutes.filter((r) => r !== route),
+          // Keep dependent selections consistent when a line is dropped.
+          mapRoutes: s.mapRoutes.filter((r) => r !== route),
+          tracked: Object.fromEntries(Object.entries(s.tracked).filter(([r]) => r !== route)),
+          routeAlerts: Object.fromEntries(Object.entries(s.routeAlerts).filter(([r]) => r !== route)),
+        })),
 
       mapRoutes: ["B6", "B8", "B15"],
       setMapRoutes: (mapRoutes) => set({ mapRoutes }),

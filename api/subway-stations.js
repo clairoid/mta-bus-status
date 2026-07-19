@@ -1,4 +1,4 @@
-import { cors } from "./lib.js";
+import { cors } from "./_lib.js";
 
 const SUBWAY_STATIONS = [
   { name: "Atlantic Av-Barclays Ctr", lines: ["B","D","N","Q","R","2","3","4","5"], lat: 40.684359, lon: -73.977666 },

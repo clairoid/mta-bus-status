@@ -1,4 +1,4 @@
-import { DEFAULT_ROUTES, cors, fetchJSON, SIRI_BASE, API_KEY, routeApiId } from "./lib.js";
+import { DEFAULT_ROUTES, cors, fetchJSON, SIRI_BASE, API_KEY, routeApiId } from "./_lib.js";
 
 function stripRoutePrefix(s, originalRoute) {
   let clean = s.replace("MTABC_", "").replace("MTA NYCT_", "").replace("MTA_", "");

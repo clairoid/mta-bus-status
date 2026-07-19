@@ -1,4 +1,4 @@
-import { cors, fetchJSON, SIRI_BASE, API_KEY, polyline, oneBusAwayId } from "../lib.js";
+import { cors, fetchJSON, SIRI_BASE, API_KEY, polyline, oneBusAwayId } from "../_lib.js";
 
 const cache = {};
 

@@ -16,18 +16,17 @@ import { useVehicles } from "../hooks/useVehicles";
 import { useRouteGeometry } from "../hooks/useRouteGeometry";
 import { useOnDemandStop } from "../hooks/useOnDemandStop";
 import { useAppStore } from "../store/useAppStore";
-import { ROUTES } from "../lib/data/mock/mta";
 import { routeColor } from "../lib/data/routeColors";
 import { cleanText, effectLabel, effectSeverity, severityColors } from "../lib/data/alertFormat";
 import { flattenDepartures } from "../lib/data/departures";
 import type { Alert } from "../lib/data/types";
 import type { Departure } from "../components/cards/DepartureRow";
 
-const AVAILABLE_ROUTES = Object.keys(ROUTES);
 
 export function Dashboard() {
   const view = useAppStore((s) => s.view);
   const setView = useAppStore((s) => s.setView);
+  const myRoutes = useAppStore((s) => s.myRoutes);
   const mapRoutes = useAppStore((s) => s.mapRoutes);
   const toggleMapRoute = useAppStore((s) => s.toggleMapRoute);
   const setSelectedStop = useAppStore((s) => s.setSelectedStop);
@@ -74,7 +73,7 @@ export function Dashboard() {
               onChange={setView}
             />
             <div className="flex flex-1 gap-1.5 overflow-x-auto [scrollbar-width:none]">
-              {AVAILABLE_ROUTES.map((r) => (
+              {myRoutes.map((r) => (
                 <Chip
                   key={r}
                   label={r}

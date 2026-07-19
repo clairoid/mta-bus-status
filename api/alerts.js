@@ -1,4 +1,4 @@
-import { cors, fetchBuffer, protobuf } from "./lib.js";
+import { cors, fetchBuffer, protobuf } from "./_lib.js";
 
 let cached = null;
 let cachedAt = 0;

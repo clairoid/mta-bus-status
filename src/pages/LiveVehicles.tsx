@@ -6,13 +6,13 @@ import { VehicleCard } from "../components/cards/VehicleCard";
 import { StopCardSkeleton } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
 import { useVehicles } from "../hooks/useVehicles";
-import { ROUTES } from "../lib/data/mock/mta";
+import { useAppStore } from "../store/useAppStore";
 
-const ALL_ROUTES = Object.keys(ROUTES);
 
 // README Live Vehicles: active fleet cards + route filter chips + empty state.
 export function LiveVehicles() {
-  const { vehicles, loading } = useVehicles(ALL_ROUTES);
+  const myRoutes = useAppStore((s) => s.myRoutes);
+  const { vehicles, loading } = useVehicles(myRoutes);
   const [filter, setFilter] = useState("all");
 
   const filtered = useMemo(
@@ -20,7 +20,7 @@ export function LiveVehicles() {
     [vehicles, filter]
   );
 
-  const chips = ["all", ...ALL_ROUTES];
+  const chips = ["all", ...myRoutes];
 
   return (
     <PageShell title="Live Vehicles">

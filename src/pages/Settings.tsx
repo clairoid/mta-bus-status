@@ -5,11 +5,10 @@ import { Overline } from "../components/ui/Overline";
 import { RouteBadge } from "../components/ui/RouteBadge";
 import { useTheme } from "../lib/theme/theme-context";
 import { useAppStore } from "../store/useAppStore";
-import { ROUTES } from "../lib/data/mock/mta";
+import { useRouteName } from "../hooks/useRouteCatalog";
 import { InstallCard } from "../components/pwa/InstallCard";
 import { PushCard } from "../components/pwa/PushCard";
 
-const ALL_ROUTES = Object.keys(ROUTES);
 
 function SettingRow({ label, sublabel, control }: { label: string; sublabel?: string; control: ReactNode }) {
   return (
@@ -37,6 +36,7 @@ function Card({ title, children }: { title: string; children: ReactNode }) {
 export function Settings() {
   const { theme, toggleTheme } = useTheme();
   const s = useAppStore();
+  const routeName = useRouteName();
 
   return (
     <PageShell title="Settings">
@@ -69,16 +69,22 @@ export function Settings() {
 
         <div className="space-y-5">
           <Card title="Route alerts">
-            {ALL_ROUTES.map((r) => (
-              <div
-                key={r}
-                className="flex items-center gap-3 border-t border-border px-4 py-3 first:border-t-0"
-              >
-                <RouteBadge routeId={r} />
-                <span className="min-w-0 flex-1 truncate text-[13px] text-text2">{ROUTES[r].name}</span>
-                <Toggle on={!!s.routeAlerts[r]} onChange={() => s.toggleRouteAlert(r)} label={`${r} alerts`} />
+            {s.myRoutes.length === 0 ? (
+              <div className="px-4 py-3 text-[13px] text-dim">
+                No lines followed — add some from the Routes screen.
               </div>
-            ))}
+            ) : (
+              s.myRoutes.map((r) => (
+                <div
+                  key={r}
+                  className="flex items-center gap-3 border-t border-border px-4 py-3 first:border-t-0"
+                >
+                  <RouteBadge routeId={r} />
+                  <span className="min-w-0 flex-1 truncate text-[13px] text-text2">{routeName(r)}</span>
+                  <Toggle on={!!s.routeAlerts[r]} onChange={() => s.toggleRouteAlert(r)} label={`${r} alerts`} />
+                </div>
+              ))
+            )}
           </Card>
 
           <Card title="About">

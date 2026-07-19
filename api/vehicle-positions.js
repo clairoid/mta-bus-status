@@ -1,4 +1,4 @@
-import { DEFAULT_ROUTES, cors, fetchBuffer, protobuf, API_KEY } from "./lib.js";
+import { DEFAULT_ROUTES, cors, fetchBuffer, protobuf, API_KEY } from "./_lib.js";
 
 export default async function handler(req, res) {
   cors(req, res);

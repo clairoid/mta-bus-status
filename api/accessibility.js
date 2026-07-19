@@ -1,4 +1,4 @@
-import { cors, fetchJSON, SIRI_BASE, API_KEY } from "./lib.js";
+import { cors, fetchJSON, SIRI_BASE, API_KEY } from "./_lib.js";
 
 const cache = {};
 

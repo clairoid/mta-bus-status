@@ -15,6 +15,7 @@ import subwayStations from "./api/subway-stations.js";
 import accessibility from "./api/accessibility.js";
 import stopsForRoute from "./api/stops/[route].js";
 import polylinesForRoute from "./api/polylines/[route].js";
+import routesCatalog from "./api/routes.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -39,6 +40,7 @@ app.get("/api/subway-stations", wrap(subwayStations));
 app.get("/api/accessibility", wrap(accessibility));
 app.get("/api/stops/:route", wrap(stopsForRoute));
 app.get("/api/polylines/:route", wrap(polylinesForRoute));
+app.get("/api/routes", wrap(routesCatalog));
 
 // --- Serve static build ---
 app.use(express.static(join(__dirname, "dist")));

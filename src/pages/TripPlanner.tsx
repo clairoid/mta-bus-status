@@ -8,7 +8,6 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { fetchTrip } from "../lib/data/real/trip";
 import { geocodePlaces, type GeoPlace } from "../lib/data/geocode";
 import { useAppStore } from "../store/useAppStore";
-import { ROUTES } from "../lib/data/mock/mta";
 import type { TripSuggestion } from "../lib/data/types";
 
 // Saved Home/Work places (README Trip Planner autocomplete quick-picks).
@@ -17,9 +16,9 @@ const SAVED_PLACES = [
   { label: "Work", sublabel: "Kings Hwy, Brooklyn", icon: "💼", lat: 40.6035, lon: -73.9573 },
 ];
 
-const TRIP_ROUTES = Object.keys(ROUTES);
 
 export function TripPlanner() {
+  const myRoutes = useAppStore((s) => s.myRoutes);
   const tripFrom = useAppStore((s) => s.tripFrom);
   const tripTo = useAppStore((s) => s.tripTo);
   const setTrip = useAppStore((s) => s.setTrip);
@@ -37,7 +36,7 @@ export function TripPlanner() {
       setLoading(true);
       setSuggestions(null);
       try {
-        const result = await fetchTrip(from.lat, from.lon, to.lat, to.lon, TRIP_ROUTES);
+        const result = await fetchTrip(from.lat, from.lon, to.lat, to.lon, myRoutes);
         setSuggestions(result.suggestions);
         addRecentTrip(`${from.label} → ${to.label}`);
       } catch {
@@ -46,7 +45,7 @@ export function TripPlanner() {
         setLoading(false);
       }
     },
-    [addRecentTrip]
+    [addRecentTrip, myRoutes]
   );
 
   const pickFrom = (place: GeoPlace) => {
@@ -127,13 +126,13 @@ export function TripPlanner() {
           <EmptyState
             icon="🧭"
             title="Plan a trip"
-            subtitle="Pick a From and To (or a saved place) to see the best B-line options."
+            subtitle="Pick a From and To (or a saved place) to see the best options across your lines."
           />
         ) : suggestions.length === 0 ? (
           <EmptyState
             icon="🚏"
             title="No direct options found"
-            subtitle="These points may not share a nearby B6/B8/B15/B44/B41 route."
+            subtitle="These points may not share a nearby line you follow. Try adding more lines from Routes."
           />
         ) : (
           <div className="space-y-3">

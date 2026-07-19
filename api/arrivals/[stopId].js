@@ -1,4 +1,4 @@
-import { cors, fetchJSON, SIRI_BASE, API_KEY, routeApiId } from "../lib.js";
+import { cors, fetchJSON, SIRI_BASE, API_KEY, routeApiId } from "../_lib.js";
 
 export default async function handler(req, res) {
   cors(req, res);

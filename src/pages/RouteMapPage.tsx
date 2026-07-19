@@ -8,16 +8,16 @@ import { useRouteGeometry } from "../hooks/useRouteGeometry";
 import { useOnDemandStop } from "../hooks/useOnDemandStop";
 import { useTick } from "../hooks/tick-context";
 import { useAppStore } from "../store/useAppStore";
-import { ROUTE_PATHS, ROUTES } from "../lib/data/mock/mta";
+import { ROUTE_PATHS } from "../lib/data/mock/mta";
 import { routeColor } from "../lib/data/routeColors";
 
-const ROUTE_IDS = Object.keys(ROUTES);
 // Rail padding: stops/buses map t∈[0,1] into 38px..(height-38px).
 const RAIL_INSET = 38;
 const DRIFT_PER_TICK = 0.004;
 
 export function RouteMapPage() {
-  const routeMapId = useAppStore((s) => s.routeMapId) ?? "B6";
+  const myRoutes = useAppStore((s) => s.myRoutes);
+  const routeMapId = useAppStore((s) => s.routeMapId) ?? myRoutes[0] ?? "B6";
   const setRouteMapId = useAppStore((s) => s.setRouteMapId);
   const elapsed = useTick();
 
@@ -39,7 +39,7 @@ export function RouteMapPage() {
     <PageShell title="Route Map">
       {/* route picker */}
       <div className="mb-5 flex gap-2 overflow-x-auto [scrollbar-width:none]">
-        {ROUTE_IDS.map((id) => (
+        {myRoutes.map((id) => (
           <button
             key={id}
             type="button"

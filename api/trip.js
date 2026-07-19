@@ -1,4 +1,4 @@
-import { cors, fetchJSON, SIRI_BASE, API_KEY, DEFAULT_ROUTES, routeApiId } from "./lib.js";
+import { cors, fetchJSON, SIRI_BASE, API_KEY, DEFAULT_ROUTES, routeApiId } from "./_lib.js";
 
 function haversineMeters(lat1, lon1, lat2, lon2) {
   const R = 6371000;

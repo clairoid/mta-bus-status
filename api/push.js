@@ -1,6 +1,6 @@
 import webpush from "web-push";
 import { createClient } from "@supabase/supabase-js";
-import { cors } from "./lib.js";
+import { cors } from "./_lib.js";
 
 // One function, two jobs (Vercel Hobby caps functions at 12):
 //   POST /api/push  → send a test push to a provided subscription
