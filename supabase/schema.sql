@@ -69,6 +69,9 @@ create table if not exists public.push_subscriptions (
   created_at timestamptz default now()
 );
 create index if not exists push_subscriptions_user_idx on public.push_subscriptions (user_id);
+-- Alert IDs already pushed to this device (dedup so a frequent scheduler
+-- doesn't re-notify the same alert). Pruned to currently-active alerts.
+alter table public.push_subscriptions add column if not exists notified_ids text[] not null default '{}';
 
 alter table public.push_subscriptions enable row level security;
 drop policy if exists "push_select_own" on public.push_subscriptions;
