@@ -40,9 +40,10 @@ async function cronScan(req, res) {
   }
   const db = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
   try {
-    const { data: subs } = await db
+    const { data: subs, error: subsErr } = await db
       .from("push_subscriptions")
       .select("endpoint, subscription, routes, notified_ids");
+    if (subsErr) return res.status(500).json({ error: `db: ${subsErr.message}` });
     if (!subs?.length) return res.status(200).json({ sent: 0, note: "no subscriptions" });
 
     const host = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://mta-bus-status.vercel.app";
