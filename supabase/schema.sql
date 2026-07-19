@@ -58,3 +58,24 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
+
+-- 5. Web push subscriptions: one row per device/browser per user. `routes`
+--    is the set of routes that device wants alerts for.
+create table if not exists public.push_subscriptions (
+  endpoint text primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  subscription jsonb not null,
+  routes text[] not null default '{}',
+  created_at timestamptz default now()
+);
+create index if not exists push_subscriptions_user_idx on public.push_subscriptions (user_id);
+
+alter table public.push_subscriptions enable row level security;
+drop policy if exists "push_select_own" on public.push_subscriptions;
+drop policy if exists "push_insert_own" on public.push_subscriptions;
+drop policy if exists "push_update_own" on public.push_subscriptions;
+drop policy if exists "push_delete_own" on public.push_subscriptions;
+create policy "push_select_own" on public.push_subscriptions for select using (auth.uid() = user_id);
+create policy "push_insert_own" on public.push_subscriptions for insert with check (auth.uid() = user_id);
+create policy "push_update_own" on public.push_subscriptions for update using (auth.uid() = user_id);
+create policy "push_delete_own" on public.push_subscriptions for delete using (auth.uid() = user_id);

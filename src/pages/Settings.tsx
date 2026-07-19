@@ -7,6 +7,7 @@ import { useTheme } from "../lib/theme/theme-context";
 import { useAppStore } from "../store/useAppStore";
 import { ROUTES } from "../lib/data/mock/mta";
 import { InstallCard } from "../components/pwa/InstallCard";
+import { PushCard } from "../components/pwa/PushCard";
 
 const ALL_ROUTES = Object.keys(ROUTES);
 
@@ -54,7 +55,11 @@ export function Settings() {
             />
           </Card>
 
-          <Card title="Notifications">
+          <div className="space-y-2.5">
+            <Overline>Notifications</Overline>
+            <PushCard />
+          </div>
+          <Card title="Notification preferences">
             <SettingRow label="Sound alerts" control={<Toggle on={s.sound} onChange={s.setSound} label="Sound alerts" />} />
             <SettingRow label="Arrival push" control={<Toggle on={s.pushArrivals} onChange={s.setPushArrivals} label="Arrival push" />} />
             <SettingRow label="Service alerts" control={<Toggle on={s.pushAlerts} onChange={s.setPushAlerts} label="Service alerts" />} />
