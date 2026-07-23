@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { PageShell } from "../components/chrome/PageShell";
 import { EmptyState } from "../components/ui/EmptyState";
+import { Icon } from "../components/ui/Icon";
 import { NearbyCard, type NearbyStopView } from "../components/cards/NearbyCard";
 import { StopDrawerHost } from "../components/overlays/StopDrawerHost";
 import { useGeolocation, type GeoCoords } from "../hooks/useGeolocation";
@@ -79,9 +80,10 @@ export function Nearby() {
           type="button"
           onClick={locate}
           disabled={busy}
-          className="flex items-center gap-2 rounded-control bg-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:opacity-60"
+          className="flex min-h-11 items-center gap-2 rounded-control bg-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-hover active:scale-95 disabled:opacity-60"
         >
-          📍 {busy ? "Locating…" : "Find stops near me"}
+          <Icon name="crosshair" size={16} />
+          {busy ? "Locating…" : "Find stops near me"}
         </button>
         {nearby && (
           <span className="text-xs text-dim">{nearby.length} stops on your active routes</span>
@@ -96,13 +98,13 @@ export function Nearby() {
 
       {nearby === null ? (
         <EmptyState
-          icon="📍"
+          icon="pin"
           title="No stops nearby yet"
           subtitle="Enable location to find stops around you on your active routes."
         />
       ) : nearby.length === 0 ? (
         <EmptyState
-          icon="📍"
+          icon="pin"
           title="No stops nearby"
           subtitle="No stops on your active routes were found near your location."
         />

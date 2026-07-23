@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { PageShell } from "../components/chrome/PageShell";
 import { Chip } from "../components/ui/Chip";
+import { ChipRail } from "../components/inputs/ChipRail";
 import { AlertCard } from "../components/cards/AlertCard";
 import { Skeleton } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -25,7 +26,7 @@ export function ServiceAlerts() {
 
   return (
     <PageShell title="Service Alerts" liveCount={alerts.length}>
-      <div className="mb-4 flex gap-2 overflow-x-auto [scrollbar-width:none]">
+      <ChipRail className="mb-4">
         {CAUSE_FILTERS.map((c) => (
           <Chip
             key={c}
@@ -35,7 +36,7 @@ export function ServiceAlerts() {
             onClick={() => setAlertFilter(c)}
           />
         ))}
-      </div>
+      </ChipRail>
 
       {loading ? (
         <div className="grid grid-cols-1 gap-3.5 min-[860px]:grid-cols-2">
@@ -45,7 +46,7 @@ export function ServiceAlerts() {
         </div>
       ) : filtered.length === 0 ? (
         <EmptyState
-          icon="✅"
+          icon="check"
           title={alertFilter === "All" ? "No active service alerts" : `No ${alertFilter.toLowerCase()} alerts`}
           subtitle="Alerts on your routes will appear here as they're posted."
         />

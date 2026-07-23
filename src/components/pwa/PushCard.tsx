@@ -17,10 +17,10 @@ export function PushCard() {
   const onToggle = async (on: boolean) => {
     if (on) {
       const { error } = await enable();
-      showToast(error ? error : "Push notifications on", error ? "⚠️" : "🔔");
+      showToast(error ? error : "Push notifications on", error ? "alert" : "bell");
     } else {
       await disable();
-      showToast("Push notifications off", "🔕");
+      showToast("Push notifications off", "bell");
     }
   };
 
@@ -28,7 +28,7 @@ export function PushCard() {
     setTesting(true);
     const { error } = await sendTest();
     setTesting(false);
-    if (error) showToast(error, "⚠️");
+    if (error) showToast(error, "alert");
   };
 
   return (

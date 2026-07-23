@@ -1,4 +1,5 @@
 import { useAppStore } from "../../store/useAppStore";
+import { IconButton } from "../ui/IconButton";
 
 const SHORTCUTS: [string, string][] = [
   ["1–9", "Jump to section"],
@@ -29,14 +30,7 @@ export function KeyboardHelpModal() {
       >
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-sm font-bold text-text">Keyboard shortcuts</h2>
-          <button
-            type="button"
-            onClick={() => setHelpOpen(false)}
-            aria-label="Close"
-            className="text-dim hover:text-text"
-          >
-            ✕
-          </button>
+          <IconButton icon="close" label="Close" onClick={() => setHelpOpen(false)} bare />
         </div>
         <div className="space-y-2">
           {SHORTCUTS.map(([key, desc]) => (

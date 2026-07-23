@@ -29,7 +29,7 @@ export function ServiceChanges() {
         </div>
       ) : changes.length === 0 ? (
         <EmptyState
-          icon="📢"
+          icon="megaphone"
           title="No service changes"
           subtitle="Planned and active service changes on your routes will appear here."
         />

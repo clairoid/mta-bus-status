@@ -23,7 +23,7 @@ export function Notifications() {
 
   const markAll = () => {
     markAllNotifsRead(notifications.map((n) => String(n.id)));
-    showToast("All notifications marked read", "✓");
+    showToast("All notifications marked read", "check");
   };
 
   return (
@@ -37,7 +37,7 @@ export function Notifications() {
             <button
               type="button"
               onClick={markAll}
-              className="rounded-control border border-border bg-card px-3 py-1.5 text-xs font-semibold text-text2 hover:bg-chip"
+              className="flex min-h-11 items-center rounded-control border border-border bg-card px-3.5 text-xs font-semibold text-text2 transition-colors hover:bg-chip active:bg-chip"
             >
               Mark all read
             </button>
@@ -52,7 +52,7 @@ export function Notifications() {
           </div>
         ) : notifications.length === 0 ? (
           <EmptyState
-            icon="🔔"
+            icon="bell"
             title="No notifications"
             subtitle="Arrival and service alerts for your tracked routes will show up here."
           />

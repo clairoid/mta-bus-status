@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { PageShell } from "../components/chrome/PageShell";
 import { LivePill } from "../components/ui/LivePill";
 import { Overline } from "../components/ui/Overline";
+import { Icon } from "../components/ui/Icon";
 import { StopDrawerHost } from "../components/overlays/StopDrawerHost";
 import { useVehicles } from "../hooks/useVehicles";
 import { useRouteGeometry } from "../hooks/useRouteGeometry";
@@ -38,13 +39,14 @@ export function RouteMapPage() {
   return (
     <PageShell title="Route Map">
       {/* route picker */}
-      <div className="mb-5 flex gap-2 overflow-x-auto [scrollbar-width:none]">
+      <div className="no-scrollbar scroll-fade-x mb-5 flex gap-2 overflow-x-auto py-0.5">
         {myRoutes.map((id) => (
           <button
             key={id}
             type="button"
             onClick={() => setRouteMapId(id)}
-            className={`flex shrink-0 items-center gap-2 rounded-pill border px-3.5 py-2 text-[13px] font-bold transition-colors ${
+            aria-pressed={id === routeMapId}
+            className={`flex min-h-11 shrink-0 items-center gap-2 rounded-pill border px-4 text-[13px] font-bold transition-colors active:scale-95 ${
               id === routeMapId ? "border-accent bg-accent-soft text-accent" : "border-border bg-card text-text2"
             }`}
           >
@@ -101,16 +103,16 @@ export function RouteMapPage() {
                   boxShadow: `0 0 0 2px ${color}`,
                 }}
               />
-              {stop.accessible && <span className="text-[11px]">♿</span>}
+              {stop.accessible && <Icon name="accessibility" size={12} className="text-text2" title="Accessible" />}
             </div>
           ))}
           {busPositions.map((t, i) => (
             <div
               key={i}
-              className="absolute left-1/2 flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-lg border-2 border-white text-[11px] shadow-lg [transition:top_1s_linear]"
+              className="absolute left-1/2 flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-lg border-2 border-white text-white shadow-lg [transition:top_1s_linear]"
               style={{ top: `calc(${RAIL_INSET}px + ${t} * (100% - ${RAIL_INSET * 2}px))`, backgroundColor: color }}
             >
-              🚌
+              <Icon name="bus" size={13} strokeWidth={2.2} />
             </div>
           ))}
         </div>
@@ -125,13 +127,13 @@ export function RouteMapPage() {
                     key={stop.id}
                     type="button"
                     onClick={() => openStop(stop.id, routeMapId, stop.name)}
-                    className="flex w-full items-center gap-3 border-t border-border px-4 py-3 text-left first:border-t-0 hover:bg-chip"
+                    className="flex min-h-12 w-full items-center gap-3 border-t border-border px-4 py-3 text-left transition-colors first:border-t-0 hover:bg-chip active:bg-chip"
                   >
                     <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: color }} />
                     <span className="flex-1 truncate text-[13px] font-medium capitalize text-text">
                       {stop.name.toLowerCase()}
                     </span>
-                    <span className="text-dim">›</span>
+                    <Icon name="chevronRight" size={15} className="shrink-0 text-dim" />
                   </button>
                 ))
               : path.stops.map((stop) => (
@@ -146,7 +148,7 @@ export function RouteMapPage() {
                         HUB
                       </span>
                     )}
-                    {stop.accessible && <span className="text-xs">♿</span>}
+                    {stop.accessible && <Icon name="accessibility" size={13} className="text-text2" title="Accessible" />}
                   </div>
                 ))}
           </div>

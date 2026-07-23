@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { PageShell } from "../components/chrome/PageShell";
+import { Icon, type IconName } from "../components/ui/Icon";
 import { AutocompleteInput } from "../components/inputs/AutocompleteInput";
 import { RecentChips } from "../components/inputs/RecentChips";
 import { TripOptionCard } from "../components/cards/TripOptionCard";
@@ -11,9 +12,9 @@ import { useAppStore } from "../store/useAppStore";
 import type { TripSuggestion } from "../lib/data/types";
 
 // Saved Home/Work places (README Trip Planner autocomplete quick-picks).
-const SAVED_PLACES = [
-  { label: "Home", sublabel: "Court St, Brooklyn", icon: "🏠", lat: 40.6901, lon: -73.9915 },
-  { label: "Work", sublabel: "Kings Hwy, Brooklyn", icon: "💼", lat: 40.6035, lon: -73.9573 },
+const SAVED_PLACES: { label: string; sublabel: string; icon: IconName; lat: number; lon: number }[] = [
+  { label: "Home", sublabel: "Court St, Brooklyn", icon: "home", lat: 40.6901, lon: -73.9915 },
+  { label: "Work", sublabel: "Kings Hwy, Brooklyn", icon: "briefcase", lat: 40.6035, lon: -73.9573 },
 ];
 
 
@@ -108,9 +109,9 @@ export function TripPlanner() {
             type="button"
             onClick={swap}
             aria-label="Swap origin and destination"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control border border-border bg-card text-text2 hover:bg-chip"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-control border border-border bg-card text-text2 transition-colors hover:bg-chip active:bg-chip"
           >
-            ⇅
+            <Icon name="swap" size={17} />
           </button>
         </div>
 
@@ -124,13 +125,13 @@ export function TripPlanner() {
           </div>
         ) : suggestions === null ? (
           <EmptyState
-            icon="🧭"
+            icon="compass"
             title="Plan a trip"
             subtitle="Pick a From and To (or a saved place) to see the best options across your lines."
           />
         ) : suggestions.length === 0 ? (
           <EmptyState
-            icon="🚏"
+            icon="pin"
             title="No direct options found"
             subtitle="These points may not share a nearby line you follow. Try adding more lines from Routes."
           />

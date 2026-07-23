@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { PageShell } from "../components/chrome/PageShell";
 import { Chip } from "../components/ui/Chip";
+import { ChipRail } from "../components/inputs/ChipRail";
 import { LivePill } from "../components/ui/LivePill";
 import { VehicleCard } from "../components/cards/VehicleCard";
 import { StopCardSkeleton } from "../components/ui/Skeleton";
@@ -26,7 +27,7 @@ export function LiveVehicles() {
     <PageShell title="Live Vehicles">
       <div className="mb-4 flex flex-wrap items-center gap-2.5">
         <LivePill count={vehicles.length} label="buses in service" />
-        <div className="flex gap-1.5 overflow-x-auto [scrollbar-width:none]">
+        <ChipRail>
           {chips.map((c) => (
             <Chip
               key={c}
@@ -36,7 +37,7 @@ export function LiveVehicles() {
               onClick={() => setFilter(c)}
             />
           ))}
-        </div>
+        </ChipRail>
       </div>
 
       {loading ? (
@@ -47,7 +48,7 @@ export function LiveVehicles() {
         </div>
       ) : filtered.length === 0 ? (
         <EmptyState
-          icon="🚌"
+          icon="bus"
           title="No buses on this route right now"
           subtitle="Try a different route filter."
         />

@@ -1,9 +1,10 @@
 import { PageShell } from "../components/chrome/PageShell";
 import { EmptyState } from "../components/ui/EmptyState";
+import type { IconName } from "../components/ui/Icon";
 
 interface ComingSoonProps {
   title: string;
-  icon: string;
+  icon: IconName;
 }
 
 // Placeholder for screens not yet built out in the rewrite (see the

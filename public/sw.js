@@ -1,5 +1,5 @@
 // MTA Bus Status service worker — offline shell + runtime caching.
-const CACHE = 'mta-bus-v4';
+const CACHE = 'mta-bus-v5';
 
 // Core shell precached on install so the app boots offline after first visit.
 // (Hashed JS/CSS bundles are cached at runtime as they're requested, since
@@ -36,7 +36,7 @@ self.addEventListener('message', (event) => {
 
 // --- Web push ---------------------------------------------------------------
 self.addEventListener('push', (event) => {
-  let data = {};
+  let data;
   try { data = event.data ? event.data.json() : {}; } catch { data = { body: event.data && event.data.text() }; }
   const title = data.title || 'MTA Bus Status';
   const options = {

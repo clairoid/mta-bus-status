@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { geocodePlaces, type GeoPlace } from "../../lib/data/geocode";
+import { Icon, type IconName } from "../ui/Icon";
 
 interface SavedPlace {
   label: string;
   sublabel: string;
-  icon: string;
+  icon: IconName;
   lat: number;
   lon: number;
 }
@@ -65,7 +66,8 @@ export function AutocompleteInput({
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => setOpen(true)}
-        className="w-full rounded-control border border-border bg-card px-3.5 py-2.5 text-sm text-text outline-none placeholder:text-dim focus-visible:border-accent"
+        aria-label={placeholder}
+        className="min-h-11 w-full rounded-control border border-border bg-card px-3.5 py-2.5 text-sm text-text outline-none placeholder:text-dim focus-visible:border-accent"
       />
       {open && (showSaved ? savedPlaces.length > 0 : results.length > 0) && (
         <div className="absolute left-0 right-0 top-full z-20 mt-1.5 overflow-hidden rounded-card border border-border bg-card shadow-popover">
@@ -75,9 +77,9 @@ export function AutocompleteInput({
                   key={p.label}
                   type="button"
                   onClick={() => pick(p)}
-                  className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left hover:bg-chip"
+                  className="flex min-h-12 w-full items-center gap-3 px-3.5 py-2.5 text-left hover:bg-chip active:bg-chip"
                 >
-                  <span className="text-base">{p.icon}</span>
+                  <Icon name={p.icon} size={16} className="shrink-0 text-text2" />
                   <span className="min-w-0">
                     <span className="block truncate text-[13px] font-semibold text-text">{p.label}</span>
                     <span className="block truncate text-[11px] text-dim">{p.sublabel}</span>
@@ -89,9 +91,9 @@ export function AutocompleteInput({
                   key={`${r.label}-${r.lat}`}
                   type="button"
                   onClick={() => pick(r)}
-                  className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left hover:bg-chip"
+                  className="flex min-h-12 w-full items-center gap-3 px-3.5 py-2.5 text-left hover:bg-chip active:bg-chip"
                 >
-                  <span className="text-dim">📍</span>
+                  <Icon name="pin" size={16} className="shrink-0 text-dim" />
                   <span className="truncate text-[13px] text-text">{r.label}</span>
                 </button>
               ))}

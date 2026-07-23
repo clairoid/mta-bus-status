@@ -2,6 +2,8 @@ import { useMemo } from "react";
 import { PageShell } from "../components/chrome/PageShell";
 import { SegmentedControl } from "../components/ui/SegmentedControl";
 import { Chip } from "../components/ui/Chip";
+import { ChipRail } from "../components/inputs/ChipRail";
+import { Icon } from "../components/ui/Icon";
 import { Overline } from "../components/ui/Overline";
 import { StopCard } from "../components/cards/StopCard";
 import { StopDrawerHost } from "../components/overlays/StopDrawerHost";
@@ -63,16 +65,34 @@ export function Dashboard() {
       <div className="flex h-full min-h-0 gap-0">
         {/* left: toolbar + map/list */}
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <div className="mb-4 flex items-center gap-2.5">
-            <SegmentedControl
-              options={[
-                { value: "map", label: "Map" },
-                { value: "list", label: "List" },
-              ]}
-              value={view}
-              onChange={setView}
-            />
-            <div className="flex flex-1 gap-1.5 overflow-x-auto [scrollbar-width:none]">
+          {/* Segmented control + heatmap toggle + route chips all shared one
+              row at every width, which left ~90px of visible chip rail on a
+              phone. Below sm the chips wrap onto their own full-width line. */}
+          <div className="mb-3 flex flex-wrap items-center gap-2.5 sm:mb-4 sm:flex-nowrap">
+            <div className="order-1 shrink-0">
+              <SegmentedControl
+                options={[
+                  { value: "map", label: "Map" },
+                  { value: "list", label: "List" },
+                ]}
+                value={view}
+                onChange={setView}
+              />
+            </div>
+            {view === "map" && (
+              <button
+                type="button"
+                onClick={toggleHeatmap}
+                aria-pressed={heatmap}
+                className={`order-2 flex min-h-9 shrink-0 items-center gap-1.5 rounded-control px-3 py-1.5 text-xs font-bold transition-colors active:scale-95 sm:order-3 ${
+                  heatmap ? "bg-accent-soft text-accent" : "bg-card text-text2 hover:bg-chip"
+                }`}
+              >
+                <Icon name="flame" size={14} />
+                Heatmap
+              </button>
+            )}
+            <ChipRail className="order-3 w-full sm:order-2 sm:w-auto sm:flex-1">
               {myRoutes.map((r) => (
                 <Chip
                   key={r}
@@ -83,22 +103,15 @@ export function Dashboard() {
                   onClick={() => toggleMapRoute(r)}
                 />
               ))}
-            </div>
-            {view === "map" && (
-              <button
-                type="button"
-                onClick={toggleHeatmap}
-                className={`shrink-0 rounded-control px-3 py-1.5 text-xs font-bold transition-colors ${
-                  heatmap ? "bg-accent-soft text-accent" : "bg-card text-text2 hover:bg-chip"
-                }`}
-              >
-                🔥 Heatmap
-              </button>
-            )}
+            </ChipRail>
           </div>
 
           {view === "map" ? (
+            // Full-bleed on mobile: cancelling PageShell's padding buys back
+            // 32px of width and the rounded card framing stops fighting the
+            // phone's own edges.
             <LiveMapLazy
+              className="-mx-4 -mb-4 rounded-none sm:mx-0 sm:mb-0 sm:rounded-[16px]"
               vehicles={vehicles}
               geometry={geometry}
               visibleRoutes={mapRoutes}
@@ -113,7 +126,7 @@ export function Dashboard() {
             </div>
           ) : stops.length === 0 ? (
             <EmptyState
-              icon="🚏"
+              icon="pin"
               title="No stops for this filter"
               subtitle="Pick a route chip above to see live arrivals."
             />

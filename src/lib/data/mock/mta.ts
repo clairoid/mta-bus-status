@@ -38,8 +38,8 @@ export const NEARBY: NearbyStop[] = [
 ];
 
 export const SAVED_VIEWS: SavedView[] = [
-  { id: "v1", icon: "🌅", name: "Morning commute", routes: ["B6", "B8"], meta: "2 stops · centered on Court St" },
-  { id: "v2", icon: "🏖️", name: "Weekend Brooklyn", routes: ["B6", "B15", "B44"], meta: "5 stops · centered on Prospect Park" },
+  { id: "v1", icon: "sun", name: "Morning commute", routes: ["B6", "B8"], meta: "2 stops · centered on Court St" },
+  { id: "v2", icon: "star", name: "Weekend Brooklyn", routes: ["B6", "B15", "B44"], meta: "5 stops · centered on Prospect Park" },
 ];
 
 export const COMMUTE: Commute = {
@@ -53,11 +53,11 @@ export const COMMUTE: Commute = {
 };
 
 export const NOTIFICATIONS: AppNotification[] = [
-  { id: 1, icon: "🚌", color: "#3b82f6", title: "B6 arriving in 2 min", body: "5 Av / 42 St · Bay Ridge", time: "now", unread: true },
-  { id: 2, icon: "⚠️", color: "#f59e0b", title: "B8 delay on your route", body: "Detoured via Coney Island Ave · +10 min", time: "8m", unread: true },
-  { id: 3, icon: "🔔", color: "#6366f1", title: "Your bus is 1 stop away", body: "B15 approaching Flatbush / Av N", time: "1h", unread: false },
-  { id: 4, icon: "✓", color: "#22c55e", title: "B6 back to normal service", body: "Delays on Kings Hwy have cleared", time: "3h", unread: false },
-  { id: 5, icon: "📅", color: "#9aa0aa", title: "Holiday schedule this Friday", body: "Reduced weekend service on all routes", time: "1d", unread: false },
+  { id: 1, icon: "bus", color: "#3b82f6", title: "B6 arriving in 2 min", body: "5 Av / 42 St · Bay Ridge", time: "now", unread: true },
+  { id: 2, icon: "alert", color: "#f59e0b", title: "B8 delay on your route", body: "Detoured via Coney Island Ave · +10 min", time: "8m", unread: true },
+  { id: 3, icon: "bell", color: "#6366f1", title: "Your bus is 1 stop away", body: "B15 approaching Flatbush / Av N", time: "1h", unread: false },
+  { id: 4, icon: "check", color: "#22c55e", title: "B6 back to normal service", body: "Delays on Kings Hwy have cleared", time: "3h", unread: false },
+  { id: 5, icon: "calendar", color: "#9aa0aa", title: "Holiday schedule this Friday", body: "Reduced weekend service on all routes", time: "1d", unread: false },
 ];
 
 export const CROWDING: CrowdingData = {

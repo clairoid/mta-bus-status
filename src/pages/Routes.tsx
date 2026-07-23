@@ -44,7 +44,7 @@ export function Routes() {
     toggleTracked(routeId);
     showToast(
       willTrack ? `${routeId} added to tracked routes` : `${routeId} removed`,
-      willTrack ? "📍" : "✓"
+      willTrack ? "pin" : "check"
     );
   };
 
@@ -54,7 +54,7 @@ export function Routes() {
         <button
           type="button"
           onClick={() => setPickerOpen(true)}
-          className="rounded-control bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-hover"
+          className="flex min-h-11 items-center gap-1.5 rounded-control bg-accent px-4 text-sm font-semibold text-white transition-colors hover:bg-accent-hover active:scale-95"
         >
           + Manage lines
         </button>
@@ -63,7 +63,7 @@ export function Routes() {
 
       {myRoutes.length === 0 ? (
         <EmptyState
-          icon="🚌"
+          icon="bus"
           title="No lines yet"
           subtitle="Add MTA bus lines to follow their arrivals, alerts and vehicles."
         />

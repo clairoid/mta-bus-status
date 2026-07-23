@@ -31,13 +31,13 @@ export function Favorites() {
         </div>
       ) : !hasFavorites ? (
         <EmptyState
-          icon="⭐"
+          icon="star"
           title="No favorites yet"
-          subtitle="Tap the ☆ star on any stop to pin it here for quick access."
+          subtitle="Tap the star on any stop to pin it here for quick access."
         />
       ) : favStops.length === 0 ? (
         <EmptyState
-          icon="⭐"
+          icon="star"
           title="Your favorite stops aren't on the active routes"
           subtitle="Enable their routes from the Dashboard chips to see live arrivals here."
         />

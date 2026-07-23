@@ -12,7 +12,11 @@ export function LiveMapLazy(props: ComponentProps<typeof LiveMap>) {
   return (
     <Suspense
       fallback={
-        <div className="relative flex min-h-[360px] flex-1 items-center justify-center overflow-hidden rounded-[16px] bg-[#0d0e14] text-sm text-white/60">
+        <div
+          className={`relative flex min-h-[360px] flex-1 items-center justify-center overflow-hidden bg-[#0d0e14] text-sm text-white/60 ${
+            props.className ?? "rounded-[16px]"
+          }`}
+        >
           Loading map…
         </div>
       }

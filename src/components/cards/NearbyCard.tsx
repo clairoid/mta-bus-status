@@ -1,4 +1,5 @@
 import { RouteBadge } from "../ui/RouteBadge";
+import { Icon } from "../ui/Icon";
 
 export interface NearbyStopView {
   stopId: string;
@@ -25,14 +26,20 @@ export function NearbyCard({ stop, onOpen }: NearbyCardProps) {
     <button
       type="button"
       onClick={() => onOpen(stop.stopId)}
-      className="flex flex-col gap-3 rounded-card border border-border bg-card p-4 text-left transition-colors hover:bg-chip"
+      className="flex flex-col gap-3 rounded-card border border-border bg-card p-4 text-left transition-colors hover:bg-chip active:bg-chip"
     >
       <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className="text-[13px]" style={{ color: stop.accessible ? "var(--accent)" : "var(--dim)" }}>
-            {stop.accessible ? "♿" : "•"}
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="shrink-0" style={{ color: stop.accessible ? "var(--accent)" : "var(--dim)" }}>
+            {stop.accessible ? (
+              <Icon name="accessibility" size={15} title="Accessible stop" />
+            ) : (
+              <Icon name="pin" size={15} />
+            )}
           </span>
-          <span className="text-[13px] font-bold capitalize text-text">{stop.name.toLowerCase()}</span>
+          <span className="truncate text-[13px] font-bold capitalize text-text">
+            {stop.name.toLowerCase()}
+          </span>
         </div>
         <span className="shrink-0 text-[11px] font-semibold text-dim">
           {formatDistance(stop.distanceMeters)}

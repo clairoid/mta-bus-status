@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { PageShell } from "../components/chrome/PageShell";
 import { RouteBadge } from "../components/ui/RouteBadge";
 import { EmptyState } from "../components/ui/EmptyState";
+import { Icon } from "../components/ui/Icon";
 import { dataSources } from "../lib/data/adapters";
 import { useAppStore } from "../store/useAppStore";
 import type { TripHistoryEntry } from "../lib/data/types";
@@ -32,7 +33,7 @@ export function TripHistory() {
   return (
     <PageShell title="Trip History">
       {history.length === 0 ? (
-        <EmptyState icon="🕘" title="No trips yet" subtitle="Your past rides will show up here." />
+        <EmptyState icon="history" title="No trips yet" subtitle="Your past rides will show up here." />
       ) : (
         <div className="grid grid-cols-1 gap-3.5 min-[860px]:grid-cols-2">
           {history.map((entry) => (
@@ -55,9 +56,10 @@ export function TripHistory() {
               <button
                 type="button"
                 onClick={() => replay(entry)}
-                className="mt-3 rounded-control border border-border px-3 py-1.5 text-xs font-semibold text-text2 hover:bg-chip"
+                className="mt-3 flex min-h-9 items-center gap-1.5 rounded-control border border-border px-3 py-1.5 text-xs font-semibold text-text2 transition-colors hover:bg-chip active:bg-chip"
               >
-                ↻ Replay
+                <Icon name="refresh" size={13} />
+                Replay
               </button>
             </div>
           ))}

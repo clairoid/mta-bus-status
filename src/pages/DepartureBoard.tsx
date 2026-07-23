@@ -23,7 +23,7 @@ export function DepartureBoard() {
         <Skeleton className="h-80 w-full max-w-[720px]" />
       ) : departures.length === 0 ? (
         <EmptyState
-          icon="📋"
+          icon="list"
           title="No departures right now"
           subtitle="Enable routes from the Dashboard to populate the board."
         />

@@ -38,21 +38,28 @@ export function RouteStatCard({
         <button
           type="button"
           onClick={onOpenMap}
-          className="flex-1 text-left text-[13px] font-semibold text-text2 hover:text-text"
+          aria-label={`Open the ${routeId} route map`}
+          className="flex min-h-11 flex-1 items-center text-left text-[13px] font-semibold text-text2 hover:text-text active:text-text"
         >
           {routeName(routeId) ?? routeId}
         </button>
         <button
           type="button"
           onClick={onToggleTrack}
-          className={`rounded-pill px-3 py-1 text-[11px] font-bold transition-colors ${
+          aria-pressed={tracked}
+          className={`flex min-h-11 shrink-0 items-center rounded-pill px-3.5 text-[11px] font-bold transition-colors active:scale-95 ${
             tracked ? "bg-accent text-white" : "bg-chip text-chip-text hover:bg-accent-soft"
           }`}
         >
           {tracked ? "Tracking" : "Track"}
         </button>
       </div>
-      <button type="button" onClick={onOpenMap} className="flex gap-5 text-left">
+      <button
+        type="button"
+        onClick={onOpenMap}
+        aria-label={`${routeId} statistics — open route map`}
+        className="flex w-full gap-5 rounded-control text-left transition-colors active:bg-chip"
+      >
         <StatTile value={buses} label="Buses" />
         <StatTile
           value={pct !== null ? `${pct}%` : "—"}

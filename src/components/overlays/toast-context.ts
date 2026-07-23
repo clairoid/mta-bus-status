@@ -1,7 +1,8 @@
 import { createContext, useContext } from "react";
+import type { IconName } from "../ui/Icon";
 
 export interface ToastContextValue {
-  showToast: (message: string, icon?: string) => void;
+  showToast: (message: string, icon?: IconName) => void;
 }
 
 export const ToastContext = createContext<ToastContextValue | null>(null);

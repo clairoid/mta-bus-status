@@ -1,6 +1,7 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
 import { BottomTabBar } from "./BottomTabBar";
+import { MoreSheet } from "./MoreSheet";
 import { useBreakpoints } from "../../hooks/useMediaQuery";
 
 // The shell fills the whole browser window. The handoff specified a centered
@@ -10,18 +11,26 @@ import { useBreakpoints } from "../../hooks/useMediaQuery";
 // apply within.
 export function AppShell({ children }: { children: ReactNode }) {
   const { iconRailSidebar, mobile } = useBreakpoints();
+  const [moreOpen, setMoreOpen] = useState(false);
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-shell">
+    // h-app is 100dvh (100vh fallback). Plain 100vh is measured against the
+    // *expanded* mobile viewport, so on iOS Safari / Android Chrome the bottom
+    // of the app — tab bar included — hid behind the browser toolbar.
+    <div className="flex h-app w-full overflow-hidden bg-shell">
       {!mobile && <Sidebar iconOnly={iconRailSidebar} />}
       <main
-        className={`flex flex-1 flex-col overflow-hidden ${
-          mobile ? "pb-[calc(4rem+env(safe-area-inset-bottom))]" : ""
-        }`}
+        className="flex min-w-0 flex-1 flex-col overflow-hidden"
+        style={mobile ? { paddingBottom: "var(--tabbar-total)" } : undefined}
       >
         {children}
       </main>
-      {mobile && <BottomTabBar />}
+      {mobile && (
+        <>
+          <BottomTabBar onOpenMore={() => setMoreOpen(true)} moreActive={moreOpen} />
+          <MoreSheet open={moreOpen} onClose={() => setMoreOpen(false)} />
+        </>
+      )}
     </div>
   );
 }

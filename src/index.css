@@ -32,7 +32,10 @@
   --shadow-drawer: var(--drawer-shadow);
   --shadow-popover: var(--popover-shadow);
 
-  --font-sans: "Inter", -apple-system, sans-serif;
+  /* Inter loads async (see index.html); the system stack behind it is what
+     actually paints first, so it has to be a real fallback, not `sans-serif`. */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
 }
 
 @layer base {
@@ -49,10 +52,58 @@
     font-family: var(--font-sans);
     background: var(--color-shell);
     color: var(--color-text);
+    /* Mobile touch basics (carried over from the legacy stylesheet):
+       kill the grey tap flash, stop the browser's own pull-to-refresh from
+       fighting usePullToRefresh, and disable double-tap zoom so taps land
+       immediately. */
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+    touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
   }
   h1,
   h2,
   h3 {
     letter-spacing: -0.3px;
+  }
+  /* iOS zooms the page when a font-size < 16px input is focused. */
+  input,
+  textarea,
+  select {
+    font-size: max(16px, inherit);
+  }
+  /* Scroll containers keep their own overscroll from chaining to the page. */
+  [data-scroll] {
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@layer utilities {
+  /* 100vh is wrong on mobile: iOS Safari / Android Chrome measure it against
+     the *expanded* viewport, so the bottom of the app hides behind the
+     browser toolbar. dvh tracks the visible viewport; vh is the fallback for
+     browsers that don't support it. */
+  .h-app {
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  /* Fades the trailing edge of a horizontal scroller so clipped chips read as
+     "there's more" instead of "this is broken". */
+  .scroll-fade-x {
+    -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 28px), transparent 100%);
+    mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 28px), transparent 100%);
+  }
+  .scroll-fade-x[data-at-end="true"] {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }

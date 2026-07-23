@@ -36,7 +36,7 @@ export function Profile() {
       .map((w) => w[0])
       .slice(0, 2)
       .join("")
-      .toUpperCase() || "🚌";
+      .toUpperCase() || "MB";
   const home = profile?.home ?? { label: "Not set", lat: 0, lon: 0 };
   const work = profile?.work ?? { label: "Not set", lat: 0, lon: 0 };
 
@@ -58,7 +58,7 @@ export function Profile() {
             <button
               type="button"
               onClick={signOut}
-              className="shrink-0 rounded-control border border-border px-3 py-1.5 text-xs font-semibold text-text2 hover:bg-chip"
+              className="flex min-h-11 shrink-0 items-center rounded-control border border-border px-3.5 text-xs font-semibold text-text2 transition-colors hover:bg-chip active:bg-chip"
             >
               Sign out
             </button>
@@ -74,8 +74,8 @@ export function Profile() {
         <div>
           <Overline>Saved places</Overline>
           <div className="mt-2.5 overflow-hidden rounded-card border border-border bg-card">
-            <SavedPlaceRow icon="🏠" label="Home" sublabel={home.label} />
-            <SavedPlaceRow icon="💼" label="Work" sublabel={work.label} />
+            <SavedPlaceRow icon="home" label="Home" sublabel={home.label} />
+            <SavedPlaceRow icon="briefcase" label="Work" sublabel={work.label} />
           </div>
         </div>
       </div>

@@ -6,6 +6,7 @@ import type { Vehicle } from "../../lib/data/types";
 import type { RouteGeometry } from "../../hooks/useRouteGeometry";
 import { routeColor } from "../../lib/data/routeColors";
 import { busSvg, busSpeedColor, busPopupHtml } from "./mapHelpers";
+import { Icon } from "../ui/Icon";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || "";
 
@@ -15,6 +16,8 @@ interface LiveMapProps {
   visibleRoutes: string[];
   heatmapEnabled: boolean;
   onOpenStop: (stopId: string, route: string) => void;
+  /** Layout/rounding overrides from the host page (full-bleed on mobile). */
+  className?: string;
 }
 
 function removeLayerSafe(map: mapboxgl.Map, layerId: string, sourceId: string | null) {
@@ -29,7 +32,14 @@ function removeLayerSafe(map: mapboxgl.Map, layerId: string, sourceId: string | 
 // Ported from legacy App.jsx BusMap: dark-v11 map with route polylines,
 // diffed stop + bus markers (buses glide on the 1s vehicle poll), a bus
 // density heatmap, and Find-me / Fit-all controls.
-export function LiveMap({ vehicles, geometry, visibleRoutes, heatmapEnabled, onOpenStop }: LiveMapProps) {
+export function LiveMap({
+  vehicles,
+  geometry,
+  visibleRoutes,
+  heatmapEnabled,
+  onOpenStop,
+  className = "rounded-[16px]",
+}: LiveMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<Record<string, mapboxgl.Marker>>({});
@@ -56,7 +66,11 @@ export function LiveMap({ vehicles, geometry, visibleRoutes, heatmapEnabled, onO
         zoom: 12.5,
         attributionControl: false,
       });
-      map.addControl(new mapboxgl.NavigationControl(), "top-right");
+      // Zoom buttons earn their space with a mouse; on touch they're just a
+      // white slab over the map that pinch-to-zoom already handles.
+      if (!window.matchMedia("(pointer: coarse)").matches) {
+        map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-right");
+      }
       map.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-left");
       mapRef.current = map;
       map.on("load", () => setMapReady(true));
@@ -248,31 +262,39 @@ export function LiveMap({ vehicles, geometry, visibleRoutes, heatmapEnabled, onO
 
   if (mapError) {
     return (
-      <div className="flex flex-1 items-center justify-center rounded-[16px] bg-[#0d0e14] text-sm text-white/70">
+      <div
+        className={`flex min-h-[360px] flex-1 items-center justify-center bg-[#0d0e14] text-sm text-white/70 ${className}`}
+      >
         {mapError}
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-[360px] flex-1 overflow-hidden rounded-[16px]">
+    <div className={`relative min-h-[360px] flex-1 overflow-hidden ${className}`}>
       {/* Mapbox sets .mapboxgl-map{position:relative} on this node, so it
           must be a normal full-size block, not absolute inset-0. */}
       <div ref={containerRef} className="h-full w-full" />
-      <div className="absolute bottom-4 left-4 z-10 flex gap-2">
+      {/* Bottom-*right*: the Mapbox logo and attribution both live bottom-left,
+          and these two buttons used to sit directly on top of them. */}
+      <div className="absolute right-3 bottom-3 z-10 flex flex-col items-end gap-2">
         <button
           type="button"
           onClick={goToUser}
-          className="rounded-control bg-black/50 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur hover:bg-black/70"
+          aria-label="Centre the map on my location"
+          className="flex min-h-11 items-center gap-1.5 rounded-control bg-black/60 px-3 text-xs font-semibold text-white backdrop-blur transition-colors hover:bg-black/75 active:bg-black/80"
         >
-          📍 Find me
+          <Icon name="crosshair" size={15} />
+          Find me
         </button>
         <button
           type="button"
           onClick={fitAllBuses}
-          className="rounded-control bg-black/50 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur hover:bg-black/70"
+          aria-label="Zoom out to fit every visible bus"
+          className="flex min-h-11 items-center gap-1.5 rounded-control bg-black/60 px-3 text-xs font-semibold text-white backdrop-blur transition-colors hover:bg-black/75 active:bg-black/80"
         >
-          🚌 Fit buses
+          <Icon name="expand" size={15} />
+          Fit buses
         </button>
       </div>
     </div>

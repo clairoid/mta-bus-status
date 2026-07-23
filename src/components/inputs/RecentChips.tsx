@@ -1,3 +1,5 @@
+import { Icon } from "../ui/Icon";
+
 interface RecentChipsProps {
   items: string[];
   onPick: (item: string) => void;
@@ -12,18 +14,22 @@ export function RecentChips({ items, onPick, onRemove }: RecentChipsProps) {
       {items.map((item) => (
         <span
           key={item}
-          className="flex items-center gap-1.5 rounded-pill border border-border bg-card px-3 py-1.5 text-xs text-text2"
+          className="flex min-h-9 items-center rounded-pill border border-border bg-card pl-3.5 text-xs text-text2"
         >
-          <button type="button" onClick={() => onPick(item)} className="max-w-[180px] truncate hover:text-text">
+          <button
+            type="button"
+            onClick={() => onPick(item)}
+            className="max-w-[180px] truncate py-2 hover:text-text active:text-text"
+          >
             {item}
           </button>
           <button
             type="button"
             onClick={() => onRemove(item)}
             aria-label={`Remove ${item}`}
-            className="text-dim hover:text-text"
+            className="flex h-9 w-9 items-center justify-center rounded-pill text-dim hover:text-text active:text-text"
           >
-            ✕
+            <Icon name="close" size={13} />
           </button>
         </span>
       ))}

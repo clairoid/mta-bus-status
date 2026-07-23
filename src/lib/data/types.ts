@@ -1,3 +1,5 @@
+import type { IconName } from "../../components/ui/Icon";
+
 // Core domain types for the MTA Bus Status data layer.
 // Real-backed shapes mirror the existing api/*.js responses exactly;
 // see API_MAPPING.md in the design handoff for the mock->real field mapping.
@@ -186,7 +188,7 @@ export interface CalendarData {
 
 export interface AppNotification {
   id: number;
-  icon: string;
+  icon: IconName;
   color: string;
   title: string;
   body: string;
@@ -196,7 +198,7 @@ export interface AppNotification {
 
 export interface SavedView {
   id: string;
-  icon: string;
+  icon: IconName;
   name: string;
   routes: string[];
   meta: string;

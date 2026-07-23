@@ -2,12 +2,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppStore } from "../../store/useAppStore";
 import { useTheme } from "../../lib/theme/theme-context";
+import { useBreakpoints } from "../../hooks/useMediaQuery";
 import { NAV_ENTRIES, SETTINGS_ENTRY } from "../../lib/nav";
+import { Icon, type IconName } from "../ui/Icon";
+import { Sheet } from "./Sheet";
 
 interface Command {
   id: string;
   label: string;
-  icon: string;
+  icon: IconName;
   hint: string;
   run: () => void;
 }
@@ -15,18 +18,24 @@ interface Command {
 // README: ⌘K palette searchable across pages + quick actions; type to
 // filter, click to run, Esc closes. (Stop search folds in once a shared
 // stop index exists — pages + actions for now.)
+//
+// On mobile this doubles as the search surface: the TopBar's 96px input was
+// unusable, so it now opens this instead.
 export function CommandPalette() {
   const open = useAppStore((s) => s.paletteOpen);
   const setPalette = useAppStore((s) => s.setPalette);
   const navigate = useNavigate();
   const { toggleTheme } = useTheme();
+  const { mobile } = useBreakpoints();
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) {
       setQuery("");
-      inputRef.current?.focus();
+      // Wait a frame so the sheet is mounted before we pull focus (and the
+      // keyboard) up.
+      requestAnimationFrame(() => inputRef.current?.focus());
     }
   }, [open]);
 
@@ -45,7 +54,7 @@ export function CommandPalette() {
       {
         id: "action-theme",
         label: "Toggle theme",
-        icon: "🌓",
+        icon: "moon",
         hint: "Action",
         run: () => {
           toggleTheme();
@@ -62,43 +71,48 @@ export function CommandPalette() {
     return commands.filter((c) => c.label.toLowerCase().includes(q));
   }, [commands, query]);
 
-  if (!open) return null;
+  const close = () => setPalette(false);
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 pt-[12vh] [animation:fadeIn_0.3s]"
-      onClick={() => setPalette(false)}
-    >
-      <div
-        className="w-full max-w-lg overflow-hidden rounded-card border border-border bg-card shadow-popover [animation:overlayUp_0.35s]"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <Sheet open={open} onClose={close} mobileHeight="full">
+      <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-border bg-card px-4 py-3">
+        <Icon name="search" size={17} className="shrink-0 text-dim" />
         <input
           ref={inputRef}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search pages and actions…"
-          className="w-full border-b border-border bg-transparent px-4 py-3.5 text-sm text-text outline-none placeholder:text-dim"
+          aria-label="Search pages and actions"
+          className="min-w-0 flex-1 bg-transparent py-1 text-base text-text outline-none placeholder:text-dim sm:text-sm"
         />
-        <div className="max-h-80 overflow-y-auto py-1">
-          {filtered.length === 0 ? (
-            <div className="px-4 py-6 text-center text-sm text-dim">No matches</div>
-          ) : (
-            filtered.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                onClick={c.run}
-                className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-text hover:bg-chip"
-              >
-                <span className="text-base">{c.icon}</span>
-                <span className="flex-1">{c.label}</span>
-                <span className="text-[10px] uppercase tracking-wide text-dim">{c.hint}</span>
-              </button>
-            ))
-          )}
-        </div>
+        {mobile && (
+          <button
+            type="button"
+            onClick={close}
+            className="-mr-2 min-h-11 shrink-0 px-2 text-sm font-semibold text-dim active:text-text"
+          >
+            Cancel
+          </button>
+        )}
       </div>
-    </div>
+      <div className={mobile ? "py-1" : "max-h-80 py-1"}>
+        {filtered.length === 0 ? (
+          <div className="px-4 py-6 text-center text-sm text-dim">No matches</div>
+        ) : (
+          filtered.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              onClick={c.run}
+              className="flex min-h-12 w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-text transition-colors hover:bg-chip active:bg-chip"
+            >
+              <Icon name={c.icon} size={17} className="shrink-0 text-text2" />
+              <span className="flex-1 truncate">{c.label}</span>
+              <span className="shrink-0 text-[10px] uppercase tracking-wide text-dim">{c.hint}</span>
+            </button>
+          ))
+        )}
+      </div>
+    </Sheet>
   );
 }

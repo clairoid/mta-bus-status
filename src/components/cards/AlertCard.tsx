@@ -18,7 +18,7 @@ export function AlertCard({ alert, expanded, onToggle }: AlertCardProps) {
     <button
       type="button"
       onClick={onToggle}
-      className="w-full self-start rounded-card border border-border bg-card p-[18px] text-left"
+      className="w-full self-start rounded-card border border-border bg-card p-[18px] text-left transition-colors active:bg-chip"
     >
       <div className="mb-2.5 flex items-center gap-1.5">
         {route && <RouteBadge routeId={route} size="sm" />}

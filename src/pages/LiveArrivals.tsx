@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { PageShell } from "../components/chrome/PageShell";
 import { Chip } from "../components/ui/Chip";
+import { ChipRail } from "../components/inputs/ChipRail";
 import { StopCard } from "../components/cards/StopCard";
 import { StopCardSkeleton } from "../components/ui/Skeleton";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -33,7 +34,7 @@ export function LiveArrivals() {
 
   return (
     <PageShell title="Live Arrivals" liveCount={liveCount} onRefresh={refresh}>
-      <div className="mb-4 flex gap-2 overflow-x-auto [scrollbar-width:none]">
+      <ChipRail className="mb-4">
         {chips.map((c) => (
           <Chip
             key={c}
@@ -43,7 +44,7 @@ export function LiveArrivals() {
             onClick={() => setFilter(c)}
           />
         ))}
-      </div>
+      </ChipRail>
 
       {loading ? (
         <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 min-[1080px]:grid-cols-3">
@@ -53,7 +54,7 @@ export function LiveArrivals() {
         </div>
       ) : filtered.length === 0 ? (
         <EmptyState
-          icon="🚏"
+          icon="pin"
           title="No arrivals for this filter"
           subtitle="Pick a different route or clear the search."
         />

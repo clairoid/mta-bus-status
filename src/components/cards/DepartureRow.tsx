@@ -21,7 +21,7 @@ export function DepartureRow({ departure, onOpen }: DepartureRowProps) {
     <button
       type="button"
       onClick={() => onOpen(departure.stopId)}
-      className="grid w-full grid-cols-[60px_1fr_70px] items-center gap-2.5 border-t border-border px-[18px] py-3 text-left min-[720px]:grid-cols-[60px_1fr_1fr_70px]"
+      className="grid min-h-14 w-full grid-cols-[60px_1fr_70px] items-center gap-2.5 border-t border-border px-4 py-3 text-left transition-colors active:bg-chip sm:px-[18px] min-[720px]:grid-cols-[60px_1fr_1fr_70px]"
     >
       <span
         className="rounded-[5px] py-0.5 text-center text-[11px] font-extrabold text-white"
