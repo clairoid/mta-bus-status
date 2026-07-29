@@ -27,9 +27,19 @@ export interface PushState {
 // Web push: request permission, subscribe via PushManager with the VAPID key,
 // persist the subscription (+ tracked routes) to Supabase for server sends.
 // Requires a signed-in user (RLS keys subscriptions to the account).
+// Which routes this device wants alerts for. `routeAlerts` (Settings → Route
+// alerts) is the single source of truth; `pushAlerts` is the master switch.
+// Previously this read `tracked` (set by a different control on the Routes
+// page), so the Settings toggles the user actually saw had no effect at all.
+function alertRoutesFrom(routeAlerts: Record<string, boolean>, enabled: boolean): string[] {
+  if (!enabled) return [];
+  return Object.keys(routeAlerts).filter((r) => routeAlerts[r]).sort();
+}
+
 export function usePushNotifications(): PushState {
   const { user } = useAuth();
-  const tracked = useAppStore((s) => s.tracked);
+  const routeAlerts = useAppStore((s) => s.routeAlerts);
+  const pushAlerts = useAppStore((s) => s.pushAlerts);
   const supported =
     typeof window !== "undefined" &&
     "serviceWorker" in navigator &&
@@ -69,9 +79,13 @@ export function usePushNotifications(): PushState {
         });
       }
       const json = sub.toJSON();
-      const routes = Object.keys(tracked).filter((r) => tracked[r]);
       const { error } = await supabase.from("push_subscriptions").upsert(
-        { endpoint: json.endpoint!, user_id: user.id, subscription: json, routes },
+        {
+          endpoint: json.endpoint!,
+          user_id: user.id,
+          subscription: json,
+          routes: alertRoutesFrom(routeAlerts, pushAlerts),
+        },
         { onConflict: "endpoint" }
       );
       if (error) return { error: error.message };
@@ -82,7 +96,26 @@ export function usePushNotifications(): PushState {
     } finally {
       setBusy(false);
     }
-  }, [supported, user, tracked]);
+  }, [supported, user, routeAlerts, pushAlerts]);
+
+  // Keep the server-side route filter in step with the user's choices. Without
+  // this the subscription kept whatever routes were selected at subscribe time,
+  // so later changes in Settings silently never took effect.
+  useEffect(() => {
+    if (!supabase || !user || !subscribed) return;
+    const routes = alertRoutesFrom(routeAlerts, pushAlerts);
+    let cancelled = false;
+    const id = setTimeout(async () => {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (cancelled || !sub) return;
+      await supabase!.from("push_subscriptions").update({ routes }).eq("endpoint", sub.endpoint);
+    }, 800);
+    return () => {
+      cancelled = true;
+      clearTimeout(id);
+    };
+  }, [user, subscribed, routeAlerts, pushAlerts]);
 
   const disable = useCallback(async () => {
     if (!supported) return;
@@ -101,20 +134,24 @@ export function usePushNotifications(): PushState {
     }
   }, [supported, user]);
 
+  // The server resolves the subscription from the DB using this token and uses
+  // a fixed payload — neither is sent from here any more. Previously both were
+  // caller-supplied, which made /api/push an open relay.
   const sendTest = useCallback(async () => {
     if (!supported) return { error: "Push isn't supported here." };
-    const reg = await navigator.serviceWorker.ready;
-    const sub = await reg.pushManager.getSubscription();
-    if (!sub) return { error: "Enable notifications first." };
+    if (!supabase) return { error: "Push is not configured." };
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) return { error: "Sign in to send a test notification." };
+
     const res = await fetch("/api/push", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        subscription: sub.toJSON(),
-        payload: { title: "MTA Bus Status", body: "Test notification — push is working ✅", url: "/alerts" },
-      }),
+      headers: { Authorization: `Bearer ${token}` },
     });
-    if (!res.ok) return { error: `Send failed (${res.status})` };
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      return { error: body?.error ?? `Send failed (${res.status})` };
+    }
     return { error: null };
   }, [supported]);
 

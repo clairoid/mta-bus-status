@@ -34,6 +34,7 @@ import { Accessibility } from "./pages/Accessibility";
 import { Notifications } from "./pages/Notifications";
 import { TripHistory } from "./pages/TripHistory";
 import { Profile } from "./pages/Profile";
+import { NotFound } from "./pages/NotFound";
 
 function AppShortcuts() {
   const navigate = useNavigate();
@@ -92,6 +93,7 @@ function AppContent() {
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/history" element={<TripHistory />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
       <CommandPalette />
       <KeyboardHelpModal />

@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { fetchVehicles } from "../lib/data/real/vehicles";
+import { usePolling } from "./usePolling";
 import type { Vehicle } from "../lib/data/types";
 
 // README/audit: vehicles poll faster than arrivals (~15s).
@@ -16,35 +17,26 @@ export function useVehicles(routes: string[]): VehiclesState {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const routesKey = routes.join(",");
-  const mountedRef = useRef(true);
 
-  useEffect(() => {
-    mountedRef.current = true;
+  const load = useCallback(async () => {
     if (!routesKey) {
       setVehicles([]);
       setLoading(false);
       return;
     }
-    setLoading(true);
-    const load = async () => {
-      try {
-        const result = await fetchVehicles(routesKey.split(","));
-        if (!mountedRef.current) return;
-        setVehicles(result);
-        setError(false);
-      } catch {
-        if (mountedRef.current) setError(true);
-      } finally {
-        if (mountedRef.current) setLoading(false);
-      }
-    };
-    load();
-    const id = setInterval(load, POLL_MS);
-    return () => {
-      mountedRef.current = false;
-      clearInterval(id);
-    };
+    try {
+      const result = await fetchVehicles(routesKey.split(","));
+      setVehicles(result);
+      setError(false);
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   }, [routesKey]);
+
+  // usePolling pauses in a hidden tab and catches up on return.
+  usePolling(load, POLL_MS);
 
   return { vehicles, loading, error };
 }

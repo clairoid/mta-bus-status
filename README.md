@@ -1,161 +1,171 @@
 # MTA Bus Status
 
-Real-time NYC bus tracking app with live map, arrivals, alerts, and a ton of commuter features. Built with React + Vite, deployed on Vercel.
+Live NYC bus tracking — real-time map, arrivals, service alerts and trip
+planning. React + Vite SPA with a thin Vercel serverless backend whose main job
+is keeping the MTA API key off the client.
 
-## What It Does
+**Production:** https://mta-bus-status.vercel.app
 
-Live bus map powered by Mapbox GL with GTFS-RT vehicle positions from the MTA. Click any stop to see real-time arrivals. Track any MTA bus route — not just the defaults.
+---
 
-## Features
+## Stack
 
-### Live Map
-- Real-time bus markers with bearing, speed color-coding, and delay rings
-- GTFS-RT vehicle positions via MTA's protobuf feed
-- Route polylines (handles MultiLineString segments correctly)
-- Click stop markers to see live arrivals
-- Bus popup shows upcoming stops, distance, and speed
-- Fit-all view, route counts, and dark theme
+| Layer | What |
+|---|---|
+| UI | React 19, TypeScript, Tailwind CSS v4, React Router 7 (SPA) |
+| State | Zustand (`persist` → localStorage), Supabase sync when signed in |
+| Map | Mapbox GL (lazy-loaded), MTA polylines + SIRI vehicle positions |
+| Backend | Vercel serverless functions in `api/` |
+| Data | MTA Bus Time SIRI (JSON) + GTFS-Realtime (protobuf) |
+| Auth/DB | Supabase (email+password, Postgres with RLS) |
+| Push | Web Push / VAPID, driven by a daily Vercel cron |
 
-### Arrivals & Departures
-- Live arrival feed per stop with minutes, delays, and stops-away count
-- Departure board across all tracked routes, sortable by route
-- Stop cards with favorite/edit/remove actions
-- Hide stops from arrivals with restore button
-- Stop picker — choose which stops to track per route, grouped by direction
+---
 
-### Route Management
-- Search and add any MTA bus route dynamically (not hardcoded)
-- Route autocomplete on add-route input
-- SBS and express route support (B44-SBS, BxM1, BM5, etc.)
-- SBS uses `+` suffix for MTA API IDs, `-SBS` for display
-- Express/SBS routes use `MTABC_` prefix where needed
-- Color-coded routes with auto-assignment
-
-### Service Alerts
-- MTA service alert cards with effect types (delays, detours, suspended, etc.)
-- Service calendar showing alert-affected days
-- Delay notifications via browser notifications
-
-### My Commute
-- Save commute routes with origin/destination
-- Geocoded addresses
-- Fetches live commute data with arrival estimates
-
-### Nearby Stops
-- Shows stops sorted by distance from your location
-- Haversine distance calculation
-- Walking distance display
-
-### Trip Planner
-- Plan trips between any two points
-- Uses tracked routes for suggestions
-
-### Route Stats
-- Per-route vehicle count, average delay, on-time percentage
-- Bus counts and occupancy info
-
-### Route Compare
-- Side-by-side comparison of two routes
-- Average delay, on-time %, speed, and vehicle count
-
-### Crowding Info
-- Occupancy badges (empty, standing available,seats available, crushed, full)
-- Crowding badge component
-
-### Subway Connections
-- Shows nearby subway stations for your bus stops
-- Subway station data from MTA
-
-### Reliability Score
-- Historical on-time performance per route
-- Tracks departure history in localStorage
-
-### Sound Alerts
-- Toggle sound notifications for arrivals
-- Browser notification permission handling
-
-### Saved Views
-- Save and load map states (zoom, center, tracked routes)
-- Stored in localStorage
-
-### Past Departures
-- Departure history with timestamps
-- Stored locally for review
-
-### System Overview
-- Total vehicles, active stops, alerts, delayed buses, average speed
-- Full-bus count and occupancy stats
-
-### User Reports
-- Submit and view crowd-sourced reports per route
-- Stored locally
-
-### Accessibility
-- Wheelchair accessibility info per stop
-- Accessible stop indicators on stop cards
-
-### Offline Support
-- Service worker with network-first strategy for API and assets
-- Cache fallback for offline use
-- Kills old caches on update
-
-### Mobile
-- Responsive tab navigation for mobile
-- Touch-friendly UI
-
-## Tech Stack
-
-- **Frontend:** React 19, Vite 8, Mapbox GL JS
-- **Backend:** Vercel Serverless Functions (Node.js)
-- **Data:** MTA BusTime API (SIRI), GTFS-RT protobuf, OneBusAway polylines/stops
-- **Deploy:** Vercel
-
-## Setup
+## Getting started
 
 ```bash
 npm install
+cp .env.example .env      # then fill in the values below
+npm run server            # API on :3005
+npm run dev               # Vite on :5173, proxies /api → :3005
 ```
 
-Create a `.env` file:
+Both processes are needed in development — Vite proxies `/api` to the Express
+wrapper, which mounts the same handlers Vercel runs in production.
 
-```
-VITE_MAPBOX_TOKEN=your_mapbox_token
-MTA_BUSTIME_KEY=your_mta_api_key
-```
+### Environment
+
+Only `MTA_BUSTIME_KEY` is required; without the rest the app still runs, just
+anonymously and without push.
+
+**Server-side** (never exposed to the browser):
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `MTA_BUSTIME_KEY` | yes | MTA Bus Time SIRI + GTFS-RT feeds |
+| `SUPABASE_URL` | for push | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | for push | Server-side DB access (bypasses RLS — never ship to the client) |
+| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | for push | Web Push signing keys (`npx web-push generate-vapid-keys`) |
+| `VAPID_SUBJECT` | no | `mailto:` or URL contact for the push service |
+| `CRON_SECRET` | for push | Gates `GET /api/push`. **Required** — the endpoint fails closed without it |
+
+**Client-side** (compiled into the bundle — treat all as public):
+
+| Variable | Purpose |
+|---|---|
+| `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` | Auth + cross-device sync. Safe to publish: every table is RLS-protected |
+| `VITE_MAPBOX_TOKEN` | Map tiles + geocoding. Use a **public** (`pk.`) token with a URL restriction |
+| `VITE_VAPID_PUBLIC_KEY` | Same value as `VAPID_PUBLIC_KEY`; needed to subscribe |
+
+### Database
+
+Run `supabase/schema.sql` once in the Supabase dashboard (SQL Editor → paste →
+Run). It is idempotent and safe to re-run. It creates `profiles`, `user_state`
+and `push_subscriptions`, enables RLS with own-row-only policies on all three,
+and installs a trigger that provisions rows on signup.
+
+---
+
+## Scripts
+
+| Command | Does |
+|---|---|
+| `npm run dev` | Vite dev server (needs `npm run server` alongside) |
+| `npm run server` | Express wrapper around the `api/` handlers on :3005 |
+| `npm run build` | `tsc -b` then `vite build` → `dist/` |
+| `npm run typecheck` | TypeScript only |
+| `npm run lint` | ESLint |
+| `npm test` | Vitest (single run) |
+| `npm run test:watch` | Vitest watch mode |
+| `npm start` | Build, then serve `dist/` + the API from one process |
+
+---
+
+## API
+
+All endpoints are `GET` unless noted, return JSON, and set a `s-maxage` CDN
+cache so repeat polling doesn't re-invoke the function.
+
+| Endpoint | Cache | Notes |
+|---|---|---|
+| `/api/health` | none | Liveness + which integrations are configured. `503` when degraded |
+| `/api/arrivals?routes=&stops=` | 15s | Arrivals per stop. `stops` is `ROUTE:ID,ID\|ROUTE2:ID` |
+| `/api/arrivals/:stopId?route=` | 15s | Raw SIRI stop-monitoring for one stop |
+| `/api/vehicles?routes=` | 10s | Live vehicle positions + onward calls |
+| `/api/alerts` | 60s | Active GTFS-RT service alerts (also memory-cached 60s) |
+| `/api/routes` | 1h | Full MTA route catalog for the line picker |
+| `/api/stops/:route` | 1h | Stops with coordinates |
+| `/api/polylines/:route` | 1h | Decoded route geometry |
+| `/api/trip?originLat=&originLng=&destLat=&destLng=&routes=` | 5m | Nearest-stop trip suggestions |
+| `/api/push` | none | `GET` = cron alert scan (needs `CRON_SECRET`). `POST` = send a test push to your own subscription (needs a Supabase bearer token) |
+
+**`?routes=` is validated and capped at 8 entries.** Each entry costs one
+upstream MTA call, so an uncapped list is an amplification vector against the
+shared API key.
+
+---
+
+## Deployment
+
+Deploys are **CLI-driven** — there is no GitHub→Vercel integration, so
+`git push` alone ships nothing:
 
 ```bash
-npm run dev
+npx vercel --prod
 ```
 
-## Build & Deploy
+This uploads and builds the **local working tree**, not a commit. Commit first
+so production always corresponds to something in git.
 
-```bash
-npm run build
+Environment variables live in the Vercel project (`npx vercel env ls`).
+`vercel.json` rewrites all non-`/api` paths to `index.html` and registers the
+daily push cron (`0 13 * * *`).
+
+Rollback: previous deployments stay live — promote an older one from the Vercel
+dashboard, or `npx vercel rollback`.
+
+---
+
+## Architecture notes
+
+```
+src/
+  components/{chrome,cards,ui,overlays,inputs,map,pwa}
+  hooks/          data fetching + polling (usePolling pauses in hidden tabs)
+  lib/data/
+    real/         typed wrappers over /api/*
+    adapters/     swappable sources for domains with no backend yet
+    mock/         fixtures behind those adapters
+  pages/          one component per route
+  store/          Zustand; PERSISTED_KEYS defines the durable slice
+api/              Vercel handlers; _lib.js holds shared helpers
+tests/            Vitest
 ```
 
-Deployed automatically via Vercel. The `vercel.json` routes `/api/*` to serverless functions and everything else to the static build.
+Two things worth knowing before changing data code:
 
-## API Routes
+**Route IDs are fiddly.** SIRI uses a trailing `+` for Select Bus Service
+(`B44+`) while the app uses `-SBS` (`B44-SBS`), and express routes sit under
+`MTABC_` rather than `MTA NYCT_`. The `-SBS` check must run *before* the
+`BX`/`BM` prefix check, or Bronx SBS routes get the wrong agency. See
+`routeApiId` in `api/_lib.js` — it's covered by tests for exactly this reason.
 
-| Route | Description |
-|---|---|
-| `/api/arrivals` | Arrivals for tracked stops |
-| `/api/arrivals/[stopId]` | Arrivals for a specific stop |
-| `/api/vehicles` | GTFS-RT vehicle positions |
-| `/api/alerts` | MTA service alerts |
-| `/api/polylines/[route]` | Route polyline GeoJSON |
-| `/api/stops/[route]` | Stops for a route |
-| `/api/accessibility` | Wheelchair accessibility data |
-| `/api/subway-stations` | Nearby subway stations |
-| `/api/trip` | Trip planning |
+**Some screens are still mock-backed.** Crowding, reliability, service calendar,
+notifications and saved views/trip history read from `lib/data/adapters`, which
+currently point at `lib/data/mock/mta.ts`. Swapping one to a real backend means
+editing `adapters/index.ts` and nothing else.
 
-## Environment Variables
+---
 
-| Variable | Description |
-|---|---|
-| `VITE_MAPBOX_TOKEN` | Mapbox GL access token |
-| `MTA_BUSTIME_KEY` | MTA BusTime API key |
+## Security
 
-## License
-
-MIT
+- The MTA key is server-side only; the browser never sees it.
+- `POST /api/push` requires a Supabase bearer token and only sends to a
+  subscription owned by that user, with a fixed server-side payload.
+- `GET /api/push` fails closed without `CRON_SECRET`.
+- The service worker only opens same-origin URLs from notification payloads.
+- Every Supabase table is RLS-protected to the owning user, which is what makes
+  the anon key safe to ship.
+- Map popups build HTML by hand and escape every field from the feed
+  (`escHtml` in `components/map/mapHelpers.ts`) — keep it that way.

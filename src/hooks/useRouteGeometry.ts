@@ -23,10 +23,20 @@ function loadRoute(route: string): Promise<RouteData> {
   let cached = routeCache.get(route);
   if (!cached) {
     cached = Promise.allSettled([fetchPolylines(route), fetchStopsForRoute(route)]).then(
-      ([poly, stops]) => ({
-        polylines: poly.status === "fulfilled" ? poly.value.segments : [],
-        stops: stops.status === "fulfilled" ? stops.value : [],
-      })
+      ([poly, stops]) => {
+        const data: RouteData = {
+          polylines: poly.status === "fulfilled" ? poly.value.segments : [],
+          stops: stops.status === "fulfilled" ? stops.value : [],
+        };
+        // Because allSettled never rejects, a failed fetch used to be cached
+        // as a permanently-empty route — one transient blip and that line
+        // stayed blank until a full page reload. Only keep a result that
+        // actually carries geometry.
+        if (data.polylines.length === 0 && data.stops.length === 0) {
+          routeCache.delete(route);
+        }
+        return data;
+      }
     );
     routeCache.set(route, cached);
   }

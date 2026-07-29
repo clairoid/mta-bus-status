@@ -10,18 +10,24 @@
     "server": "node server.js",
     "start": "npm run build && node server.js",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "//overrides": "Transitive-only advisories, all reached via gtfs-realtime-bindings -> protobufjs-cli (a build-time CLI that never executes at runtime here). Pinned to patched versions so `npm audit` stays clean and signal isn't lost in noise.",
+  "overrides": {
+    "brace-expansion": "^5.0.8",
+    "linkify-it": "^6.1.0",
+    "protobufjs": "^8.7.1"
   },
   "dependencies": {
     "@mapbox/polyline": "^1.2.1",
     "@supabase/supabase-js": "^2.110.7",
-    "express": "^5.2.1",
-    "gtfs-realtime-bindings": "^2.0.0",
+    "gtfs-realtime-bindings": "^2.1.0",
     "mapbox-gl": "^3.25.0",
-    "node-fetch": "^2.7.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "react-router-dom": "^7.18.1",
+    "react-router-dom": "7.18.2",
     "web-push": "^3.6.7",
     "zustand": "^5.0.14"
   },
@@ -35,10 +41,13 @@
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
+    "express": "^5.2.1",
     "globals": "^17.6.0",
+    "jsdom": "^30.0.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.64.0",
-    "vite": "^8.0.12"
+    "vite": "^8.0.12",
+    "vitest": "^4.1.10"
   }
 }

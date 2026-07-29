@@ -1,14 +1,4 @@
-import { DEFAULT_ROUTES, cors, fetchJSON, SIRI_BASE, API_KEY, routeApiId } from "./_lib.js";
-
-function stripRoutePrefix(s, originalRoute) {
-  let clean = s.replace("MTABC_", "").replace("MTA NYCT_", "").replace("MTA_", "");
-  // SIRI uses a trailing + for SBS routes (B44+); the app uses -SBS (B44-SBS)
-  if (clean.endsWith("+")) clean = clean.slice(0, -1) + "-SBS";
-  if (originalRoute && originalRoute.toUpperCase().endsWith("-SBS") && !clean.toUpperCase().endsWith("-SBS")) {
-    clean += "-SBS";
-  }
-  return clean;
-}
+import { cors, fail, cacheFor, parseRoutes, fetchJSON, SIRI_BASE, API_KEY, routeApiId, stripRoutePrefix, stripAgency } from "./_lib.js";
 
 async function fetchVehicleMonitoring(lineRef) {
   let url = `${SIRI_BASE}/siri/vehicle-monitoring.json?key=${API_KEY}&version=2&OperatorRef=MTA&VehicleMonitoringDetailLevel=calls&MaximumNumberOfCallsOnwards=5`;
@@ -18,9 +8,9 @@ async function fetchVehicleMonitoring(lineRef) {
 
 export default async function handler(req, res) {
   cors(req, res);
+  if (req.method === "OPTIONS") return res.status(204).end();
   try {
-    const routesParam = req.query.routes;
-    const routes = routesParam ? routesParam.split(",").map(r => r.toUpperCase().trim()).filter(Boolean) : DEFAULT_ROUTES;
+    const routes = parseRoutes(req.query.routes);
     const results = await Promise.all(routes.map(async (route) => {
       try {
         const data = await fetchVehicleMonitoring(route);
@@ -32,13 +22,13 @@ export default async function handler(req, res) {
           const vehicleNum = stripRoutePrefix(rawId);
           const onwardCalls = (mvj.OnwardCalls?.OnwardCall || []).map((call) => {
             const d = call.Extensions?.Distances || {};
-            const stopId = (call.StopPointRef || "").replace("MTA_", "").replace("MTA NYCT_", "").replace("MTABC_", "");
+            const stopId = stripAgency(call.StopPointRef || "");
             const dist = d.PresentableDistance || call.ArrivalProximityText || null;
             const stopsAway = d.StopsFromCall ?? call.NumberOfStopsAway ?? null;
             return { stopId, name: Array.isArray(call.StopPointName) ? call.StopPointName[0] : (call.StopPointName || stopId), distance: dist, stopsAway, metersAway: d.DistanceFromCall ?? call.DistanceFromStop ?? null };
           });
           const mc = mvj.MonitoredCall;
-          const nextStop = mc ? { stopId: (mc.StopPointRef || "").replace("MTA_", "").replace("MTA NYCT_", "").replace("MTABC_", ""), distance: mc.Extensions?.Distances?.PresentableDistance || null, stopsAway: mc.Extensions?.Distances?.StopsFromCall ?? null } : null;
+          const nextStop = mc ? { stopId: stripAgency(mc.StopPointRef || ""), distance: mc.Extensions?.Distances?.PresentableDistance || null, stopsAway: mc.Extensions?.Distances?.StopsFromCall ?? null } : null;
           return {
             id: vehicleNum, route: stripRoutePrefix(mvj.LineRef || "", route) || route,
             direction: mvj.DirectionRef === "0" ? "Outbound" : "Inbound",
@@ -46,12 +36,18 @@ export default async function handler(req, res) {
             lat: mvj.VehicleLocation?.Latitude, lon: mvj.VehicleLocation?.Longitude,
             bearing: mvj.Bearing || 0, progressRate: mvj.ProgressRate || "unknown",
             progressStatus: mvj.ProgressStatus || null, occupancy: mvj.Occupancy || null,
-            destinationRef: (mvj.DestinationRef || "").replace("MTA_", "").replace("MTA NYCT_", "").replace("MTABC_", "") || null,
+            destinationRef: stripAgency(mvj.DestinationRef || "") || null,
             onwardCalls, nextStop, recordedAt: v.RecordedAtTime || null,
           };
         });
       } catch { return []; }
     }));
+    // Buses move constantly, but a short shared window still collapses many
+    // clients polling on the same 15s cadence into one upstream fetch.
+    cacheFor(res, 10);
     res.json({ vehicles: results.flat() });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    console.error("[vehicles] failed:", err);
+    fail(res, 502, "Could not load live vehicles");
+  }
 }

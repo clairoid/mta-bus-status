@@ -35,7 +35,16 @@ function Card({ title, children }: { title: string; children: ReactNode }) {
 // Two-column, collapses to one on mobile.
 export function Settings() {
   const { theme, toggleTheme } = useTheme();
-  const s = useAppStore();
+  // Selector-scoped rather than `useAppStore()`, which subscribed this page to
+  // every store change (including each search keystroke).
+  const heatmap = useAppStore((st) => st.heatmap);
+  const toggleHeatmap = useAppStore((st) => st.toggleHeatmap);
+  const pushAlerts = useAppStore((st) => st.pushAlerts);
+  const setPushAlerts = useAppStore((st) => st.setPushAlerts);
+  const myRoutes = useAppStore((st) => st.myRoutes);
+  const routeAlerts = useAppStore((st) => st.routeAlerts);
+  const toggleRouteAlert = useAppStore((st) => st.toggleRouteAlert);
+  const s = { heatmap, toggleHeatmap, pushAlerts, setPushAlerts, myRoutes, routeAlerts, toggleRouteAlert };
   const routeName = useRouteName();
 
   return (
@@ -59,11 +68,18 @@ export function Settings() {
             <Overline>Notifications</Overline>
             <PushCard />
           </div>
+          {/* "Sound alerts", "Arrival push" and "Weekly summary" used to live
+              here too. They persisted and synced but nothing consumed them —
+              there is no arrival-push or weekly-digest backend — so they were
+              controls that quietly did nothing. Removed until the features
+              exist. "Service alerts" stays because it genuinely gates the push
+              subscription's route filter. */}
           <Card title="Notification preferences">
-            <SettingRow label="Sound alerts" control={<Toggle on={s.sound} onChange={s.setSound} label="Sound alerts" />} />
-            <SettingRow label="Arrival push" control={<Toggle on={s.pushArrivals} onChange={s.setPushArrivals} label="Arrival push" />} />
-            <SettingRow label="Service alerts" control={<Toggle on={s.pushAlerts} onChange={s.setPushAlerts} label="Service alerts" />} />
-            <SettingRow label="Weekly summary" control={<Toggle on={s.pushWeekly} onChange={s.setPushWeekly} label="Weekly summary" />} />
+            <SettingRow
+              label="Service alerts"
+              sublabel="Push when a line you follow has a disruption"
+              control={<Toggle on={s.pushAlerts} onChange={s.setPushAlerts} label="Service alerts" />}
+            />
           </Card>
         </div>
 
@@ -81,9 +97,18 @@ export function Settings() {
                 >
                   <RouteBadge routeId={r} />
                   <span className="min-w-0 flex-1 truncate text-[13px] text-text2">{routeName(r)}</span>
-                  <Toggle on={!!s.routeAlerts[r]} onChange={() => s.toggleRouteAlert(r)} label={`${r} alerts`} />
+                  <Toggle
+                    on={!!s.routeAlerts[r]}
+                    onChange={() => s.toggleRouteAlert(r)}
+                    label={`${r} alerts`}
+                  />
                 </div>
               ))
+            )}
+            {!s.pushAlerts && s.myRoutes.length > 0 && (
+              <div className="border-t border-border px-4 py-2.5 text-[11px] text-dim">
+                Service alerts are off, so these won't send.
+              </div>
             )}
           </Card>
 

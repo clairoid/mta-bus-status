@@ -1,20 +1,23 @@
-import { cors, fetchBuffer, protobuf } from "./_lib.js";
+import { cors, fail, cacheFor, fetchBuffer, protobuf, API_KEY } from "./_lib.js";
 
 let cached = null;
 let cachedAt = 0;
 const CACHE_MS = 60_000;
 
+const EFFECT_MAP = { 1: "NO_SERVICE", 2: "REDUCED_SERVICE", 3: "SIGNIFICANT_DETOUR", 4: "MODIFIED_SERVICE", 5: "DELAY", 6: "DETOUR", 7: "STOP_CLOSED", 8: "STOP_MOVED" };
+const CAUSE_MAP = { 1: "UNKNOWN_CAUSE", 2: "OTHER_CAUSE", 3: "TECHNICAL_PROBLEM", 4: "STRIKE", 5: "DEMONSTRATION", 6: "ACCIDENT", 7: "HOLIDAY", 8: "WEATHER", 9: "MAINTENANCE", 10: "CONSTRUCTION", 11: "POLICE_ACTIVITY", 12: "MEDICAL_EMERGENCY" };
+
 export default async function handler(req, res) {
   cors(req, res);
+  if (req.method === "OPTIONS") return res.status(204).end();
   try {
     if (cached && Date.now() - cachedAt < CACHE_MS) {
+      cacheFor(res, 60);
       return res.json({ alerts: cached });
     }
-    const buffer = await fetchBuffer(`https://gtfsrt.prod.obanyc.com/alerts?key=${process.env.MTA_BUSTIME_KEY}`);
+    const buffer = await fetchBuffer(`https://gtfsrt.prod.obanyc.com/alerts?key=${API_KEY}`);
     const feed = protobuf.transit_realtime.FeedMessage.decode(buffer);
     const now = Math.floor(Date.now() / 1000);
-    const EFFECT_MAP = { 1: "NO_SERVICE", 2: "REDUCED_SERVICE", 3: "SIGNIFICANT_DETOUR", 4: "MODIFIED_SERVICE", 5: "DELAY", 6: "DETOUR", 7: "STOP_CLOSED", 8: "STOP_MOVED" };
-    const CAUSE_MAP = { 1: "UNKNOWN_CAUSE", 2: "OTHER_CAUSE", 3: "TECHNICAL_PROBLEM", 4: "STRIKE", 5: "DEMONSTRATION", 6: "ACCIDENT", 7: "HOLIDAY", 8: "WEATHER", 9: "MAINTENANCE", 10: "CONSTRUCTION", 11: "POLICE_ACTIVITY", 12: "MEDICAL_EMERGENCY" };
     const alerts = [];
     for (const entity of feed.entity) {
       if (!entity.alert) continue;
@@ -29,7 +32,7 @@ export default async function handler(req, res) {
       });
       if (!isActive) continue;
       alerts.push({
-        id: entity.id, routes: [...new Set(affectedRoutes)],
+        id: entity.id, routes: affectedRoutes,
         header: alert.headerText?.translation?.[0]?.text || "Service Alert",
         description: alert.descriptionText?.translation?.[0]?.text || "",
         cause: CAUSE_MAP[alert.cause] || "UNKNOWN_CAUSE",
@@ -39,10 +42,15 @@ export default async function handler(req, res) {
     }
     cached = alerts;
     cachedAt = Date.now();
+    cacheFor(res, 60);
     res.json({ alerts });
   } catch (err) {
-    // Serve stale alerts rather than erroring if the feed hiccups
-    if (cached) return res.json({ alerts: cached });
-    res.status(500).json({ error: err.message });
+    // Serve stale alerts rather than erroring if the feed hiccups.
+    if (cached) {
+      cacheFor(res, 30);
+      return res.json({ alerts: cached, stale: true });
+    }
+    console.error("[alerts] failed:", err);
+    fail(res, 502, "Could not load service alerts");
   }
 }

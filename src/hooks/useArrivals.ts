@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { fetchArrivals } from "../lib/data/real/arrivals";
+import { usePolling } from "./usePolling";
 import type { StopArrivals } from "../lib/data/types";
 import { useAppStore } from "../store/useAppStore";
 
@@ -23,7 +24,6 @@ export function useArrivals(routes: string[]): ArrivalsState {
   const [updatedAt, setUpdatedAt] = useState<number | null>(null);
   const setDataError = useAppStore((s) => s.setDataError);
   const routesKey = routes.join(",");
-  const mountedRef = useRef(true);
 
   const load = useCallback(async () => {
     if (!routesKey) {
@@ -33,30 +33,20 @@ export function useArrivals(routes: string[]): ArrivalsState {
     }
     try {
       const result = await fetchArrivals(routesKey.split(","));
-      if (!mountedRef.current) return;
       setStops(result);
       setError(false);
       setDataError(false);
       setUpdatedAt(Date.now());
     } catch {
-      if (!mountedRef.current) return;
       setError(true);
       setDataError(true);
     } finally {
-      if (mountedRef.current) setLoading(false);
+      setLoading(false);
     }
   }, [routesKey, setDataError]);
 
-  useEffect(() => {
-    mountedRef.current = true;
-    setLoading(true);
-    load();
-    const id = setInterval(load, POLL_MS);
-    return () => {
-      mountedRef.current = false;
-      clearInterval(id);
-    };
-  }, [load]);
+  // usePolling pauses in a hidden tab and catches up on return.
+  usePolling(load, POLL_MS);
 
   return { stops, loading, error, updatedAt, refresh: load };
 }

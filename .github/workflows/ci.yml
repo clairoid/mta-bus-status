@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+        env:
+          # Build-time only; the real values are injected by Vercel at deploy.
+          # Present so the bundle compiles, not so it works.
+          VITE_SUPABASE_URL: ""
+          VITE_SUPABASE_ANON_KEY: ""
+          VITE_MAPBOX_TOKEN: ""
+          VITE_VAPID_PUBLIC_KEY: ""
+
+      - name: Audit production dependencies
+        # Advisory only: the remaining react-router advisory is RSC-mode-specific
+        # and this app is a plain SPA, so a non-zero exit shouldn't block CI.
+        run: npm audit --omit=dev || true

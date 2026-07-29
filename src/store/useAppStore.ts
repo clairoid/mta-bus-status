@@ -41,8 +41,6 @@ interface AppState {
   toggleTracked: (route: string) => void;
 
   // Notifications (persisted)
-  notify: boolean;
-  setNotify: (v: boolean) => void;
   readNotifs: Record<string, boolean>;
   markNotifRead: (id: string) => void;
   markAllNotifsRead: (ids: string[]) => void;
@@ -81,15 +79,11 @@ interface AppState {
   acField: "from" | "to" | null;
   setAcField: (field: "from" | "to" | null) => void;
 
-  // Notification preferences (persisted)
-  sound: boolean;
-  setSound: (v: boolean) => void;
-  pushArrivals: boolean;
-  setPushArrivals: (v: boolean) => void;
+  // Master switch for service-alert push. Drives the `routes` filter on the
+  // push subscription (see usePushNotifications). `sound`, `pushArrivals`,
+  // `pushWeekly` and `notify` used to live here too but nothing consumed them.
   pushAlerts: boolean;
   setPushAlerts: (v: boolean) => void;
-  pushWeekly: boolean;
-  setPushWeekly: (v: boolean) => void;
 
   // Accessibility (persisted)
   a11y: AccessibilitySettings;
@@ -106,16 +100,28 @@ interface AppState {
 
 const MAX_RECENT_TRIPS = 5;
 
+// Read at store-creation time, so it has to tolerate a non-browser environment
+// (tests, and any future SSR) rather than throwing on `window.matchMedia`.
+function prefersReducedMotion(): boolean {
+  return typeof window !== "undefined" && typeof window.matchMedia === "function"
+    ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    : false;
+}
+
 // Single source of truth for which state keys are durable — used by both the
 // localStorage persist (above) and the Supabase sync layer.
 export const PERSISTED_KEYS = [
-  "theme", "view", "heatmap", "myRoutes", "mapRoutes", "fav", "tracked", "notify",
+  "theme", "view", "heatmap", "myRoutes", "mapRoutes", "fav", "tracked",
   "readNotifs", "alertFilter", "savedViews", "routeAlerts", "tripFrom",
-  "tripTo", "recentTrips", "sound", "pushArrivals", "pushAlerts",
-  "pushWeekly", "a11y", "textSize",
+  "tripTo", "recentTrips", "pushAlerts", "a11y", "textSize",
 ] as const satisfies readonly (keyof AppState)[];
 
 export type PersistedState = Pick<AppState, (typeof PERSISTED_KEYS)[number]>;
+
+// Bumped whenever the shape of the durable slice changes incompatibly. Stored
+// alongside the state so a newer client can recognise (and decline to be
+// clobbered by) a blob written by an older one.
+export const STATE_VERSION = 2;
 
 // Snapshot the durable slice of the store (for pushing to Supabase).
 export function snapshotPersisted(): PersistedState {
@@ -123,9 +129,37 @@ export function snapshotPersisted(): PersistedState {
   return Object.fromEntries(PERSISTED_KEYS.map((k) => [k, s[k]])) as PersistedState;
 }
 
+const PERSISTED_KEY_SET = new Set<string>(PERSISTED_KEYS);
+
+// Runtime type guards. The synced blob is opaque `jsonb` with no server-side
+// schema, so a blob written by a different app version (or hand-edited) used to
+// be spread into the store unchecked — enough to break the app on next load.
+function sameShapeAsDefault(value: unknown, reference: unknown): boolean {
+  if (Array.isArray(reference)) return Array.isArray(value);
+  if (reference === null) return true;
+  const t = typeof reference;
+  if (t === "object") return typeof value === "object" && value !== null && !Array.isArray(value);
+  return typeof value === t;
+}
+
+// Keep only known keys whose values match the shape of the store's defaults.
+// Anything unrecognised or mistyped is dropped rather than trusted.
+export function sanitizePersisted(raw: unknown): Partial<PersistedState> {
+  if (typeof raw !== "object" || raw === null) return {};
+  const defaults = useAppStore.getInitialState() as unknown as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (!PERSISTED_KEY_SET.has(key)) continue;
+    if (value === undefined) continue;
+    if (!sameShapeAsDefault(value, defaults[key])) continue;
+    out[key] = value;
+  }
+  return out as Partial<PersistedState>;
+}
+
 // Apply a durable slice back onto the store (hydrate from Supabase).
 export function hydratePersisted(partial: Partial<PersistedState>) {
-  useAppStore.setState(partial as Partial<AppState>);
+  useAppStore.setState(sanitizePersisted(partial) as Partial<AppState>);
 }
 
 export const useAppStore = create<AppState>()(
@@ -171,8 +205,6 @@ export const useAppStore = create<AppState>()(
       toggleTracked: (route) =>
         set((s) => ({ tracked: { ...s.tracked, [route]: !s.tracked[route] } })),
 
-      notify: true,
-      setNotify: (notify) => set({ notify }),
       readNotifs: {},
       markNotifRead: (id) =>
         set((s) => ({ readNotifs: { ...s.readNotifs, [id]: true } })),
@@ -218,19 +250,13 @@ export const useAppStore = create<AppState>()(
       acField: null,
       setAcField: (acField) => set({ acField }),
 
-      sound: false,
-      setSound: (sound) => set({ sound }),
-      pushArrivals: false,
-      setPushArrivals: (pushArrivals) => set({ pushArrivals }),
       pushAlerts: true,
       setPushAlerts: (pushAlerts) => set({ pushAlerts }),
-      pushWeekly: false,
-      setPushWeekly: (pushWeekly) => set({ pushWeekly }),
 
       a11y: {
         highContrast: false,
         boldText: false,
-        reduceMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+        reduceMotion: prefersReducedMotion(),
         largeTap: false,
         accRoute: false,
       },

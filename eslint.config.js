@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'src/legacy']),
+  globalIgnores(['dist']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [
@@ -44,6 +44,12 @@ export default defineConfig([
     files: ['api/**/*.{js,jsx}', 'server.js', 'env.js'],
     languageOptions: {
       globals: globals.node,
+    },
+  },
+  {
+    files: ['tests/**/*.{js,ts}', 'vitest.config.ts'],
+    languageOptions: {
+      globals: { ...globals.node, ...globals.browser },
     },
   },
 ])
