@@ -109,7 +109,7 @@ export function Nearby() {
           subtitle="No stops on your active routes were found near your location."
         />
       ) : (
-        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 min-[1080px]:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3.5 min-[640px]:grid-cols-2 min-[1080px]:grid-cols-3">
           {nearby.map((stop) => (
             <NearbyCard key={stop.stopId} stop={stop} onOpen={onCardOpen} />
           ))}

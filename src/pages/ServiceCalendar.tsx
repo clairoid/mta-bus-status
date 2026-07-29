@@ -24,14 +24,14 @@ export function ServiceCalendar() {
   if (!cal) {
     return (
       <PageShell title="Service Calendar">
-        <Skeleton className="h-80 w-full max-w-[760px]" />
+        <Skeleton className="mx-auto h-80 w-full max-w-[820px]" />
       </PageShell>
     );
   }
 
   return (
     <PageShell title="Service Calendar">
-      <div className="grid max-w-[820px] grid-cols-1 gap-5 min-[860px]:grid-cols-[1.3fr_1fr]">
+      <div className="mx-auto grid max-w-[820px] grid-cols-1 gap-5 min-[860px]:grid-cols-[1.3fr_1fr]">
         {/* month grid */}
         <div className="rounded-card border border-border bg-card p-[18px]">
           <div className="mb-3.5 text-base font-extrabold text-text">{cal.month}</div>

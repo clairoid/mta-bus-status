@@ -22,7 +22,7 @@ export function ServiceChanges() {
   return (
     <PageShell title="Service Changes" liveCount={alerts.length}>
       {loading ? (
-        <div className="flex max-w-[760px] flex-col gap-3">
+        <div className="mx-auto flex max-w-[760px] flex-col gap-3">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-24 w-full" />
           ))}
@@ -34,7 +34,7 @@ export function ServiceChanges() {
           subtitle="Planned and active service changes on your routes will appear here."
         />
       ) : (
-        <div className="flex max-w-[760px] flex-col gap-3">
+        <div className="mx-auto flex max-w-[760px] flex-col gap-3">
           {changes.map((change) => (
             <ServiceChangeCard key={change.id} change={change} />
           ))}

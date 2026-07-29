@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppStore } from "../../store/useAppStore";
 import { useTheme } from "../../lib/theme/theme-context";
@@ -30,13 +30,9 @@ export function CommandPalette() {
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Focus is handled by Sheet via initialFocusRef; this just resets the query.
   useEffect(() => {
-    if (open) {
-      setQuery("");
-      // Wait a frame so the sheet is mounted before we pull focus (and the
-      // keyboard) up.
-      requestAnimationFrame(() => inputRef.current?.focus());
-    }
+    if (open) setQuery("");
   }, [open]);
 
   const commands = useMemo<Command[]>(() => {
@@ -71,10 +67,11 @@ export function CommandPalette() {
     return commands.filter((c) => c.label.toLowerCase().includes(q));
   }, [commands, query]);
 
-  const close = () => setPalette(false);
+  // Stable identity: passed to Sheet as `onClose`, which is an effect dep there.
+  const close = useCallback(() => setPalette(false), [setPalette]);
 
   return (
-    <Sheet open={open} onClose={close} mobileHeight="full">
+    <Sheet open={open} onClose={close} mobileHeight="full" initialFocusRef={inputRef}>
       <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-border bg-card px-4 py-3">
         <Icon name="search" size={17} className="shrink-0 text-dim" />
         <input

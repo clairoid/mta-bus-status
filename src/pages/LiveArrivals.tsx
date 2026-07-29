@@ -47,7 +47,7 @@ export function LiveArrivals() {
       </ChipRail>
 
       {loading ? (
-        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 min-[1080px]:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3.5 min-[640px]:grid-cols-2 min-[1080px]:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <StopCardSkeleton key={i} />
           ))}
@@ -59,7 +59,7 @@ export function LiveArrivals() {
           subtitle="Pick a different route or clear the search."
         />
       ) : (
-        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 min-[1080px]:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3.5 min-[640px]:grid-cols-2 min-[1080px]:grid-cols-3">
           {filtered.map((stop) => (
             <StopCard key={stop.stopId} stop={stop} onOpen={setSelectedStop} />
           ))}

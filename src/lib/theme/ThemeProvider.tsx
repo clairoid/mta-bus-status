@@ -9,6 +9,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
 
+    // Tells the engine to render native UI in the matching scheme. Without it
+    // scrollbars, autofill backgrounds and form controls stay light against
+    // the dark app — the pale scrollbar was visible on every desktop screen.
+    document.documentElement.style.colorScheme = theme;
+
     // Keep the mobile browser chrome (iOS status bar / Android address bar)
     // in step with the shell colour — a hardcoded dark theme-color leaves a
     // black bar sitting above a white app in light mode.

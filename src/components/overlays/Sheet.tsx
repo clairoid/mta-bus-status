@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { useBreakpoints } from "../../hooks/useMediaQuery";
 import { useHistoryOverlay } from "../../hooks/useHistoryOverlay";
 import { IconButton } from "../ui/IconButton";
@@ -16,6 +16,13 @@ interface SheetProps {
   desktop?: DesktopShape;
   /** Mobile height: hug the content (default) or take the full screen. */
   mobileHeight?: "auto" | "full";
+  /**
+   * Element to focus when the sheet opens, instead of the panel itself.
+   * Racing the panel focus from the consumer (rAF, timeouts) is unreliable —
+   * the palette's search input lost that race and ⌘K opened a box you
+   * couldn't type into.
+   */
+  initialFocusRef?: RefObject<HTMLElement | null>;
   children: ReactNode;
 }
 
@@ -37,6 +44,7 @@ export function Sheet({
   headerAccessory,
   desktop = "modal",
   mobileHeight = "auto",
+  initialFocusRef,
   children,
 }: SheetProps) {
   const { mobile } = useBreakpoints();
@@ -51,8 +59,14 @@ export function Sheet({
   // Esc closes; focus moves into the sheet and returns where it came from.
   useEffect(() => {
     if (!open) return;
-    restoreFocusRef.current = document.activeElement as HTMLElement | null;
-    panelRef.current?.focus();
+    // Don't steal focus from something inside the sheet. `onClose` is often a
+    // fresh closure each render, so this effect re-runs constantly — it used to
+    // yank focus back to the panel on every keystroke, which is why ⌘K opened
+    // the palette but you couldn't type into it.
+    if (!panelRef.current?.contains(document.activeElement)) {
+      restoreFocusRef.current = document.activeElement as HTMLElement | null;
+      (initialFocusRef?.current ?? panelRef.current)?.focus();
+    }
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {

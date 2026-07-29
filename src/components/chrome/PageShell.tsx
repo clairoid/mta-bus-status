@@ -41,6 +41,8 @@ export function PageShell({ title, liveCount, onRefresh, bleed, children }: Page
       )}
       <div
         ref={scrollRef}
+        id="main-content"
+        tabIndex={-1}
         data-scroll
         // 24px of side padding on a 375px screen is 13% of the viewport gone
         // before any card padding starts — 16px on mobile, 24px from sm up.

@@ -24,7 +24,7 @@ export function Favorites() {
   return (
     <PageShell title="Favorites">
       {loading && hasFavorites ? (
-        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 min-[1080px]:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3.5 min-[640px]:grid-cols-2 min-[1080px]:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
             <StopCardSkeleton key={i} />
           ))}
@@ -42,7 +42,7 @@ export function Favorites() {
           subtitle="Enable their routes from the Dashboard chips to see live arrivals here."
         />
       ) : (
-        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 min-[1080px]:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3.5 min-[640px]:grid-cols-2 min-[1080px]:grid-cols-3">
           {favStops.map((stop) => (
             <StopCard key={stop.stopId} stop={stop} onOpen={setSelectedStop} />
           ))}

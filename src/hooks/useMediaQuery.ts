@@ -15,10 +15,11 @@ export function useMediaQuery(query: string): boolean {
 }
 
 // README responsive breakpoints: 1080 (hide right rail, grids->2col),
-// 860 (icon-rail sidebar, grids->1col), 560 (bottom tab bar, full-screen shell)
+// 860 (icon-rail sidebar, grids->1col), 560 (bottom tab bar, full-screen shell).
+// The 1080 tier is expressed in CSS (`min-[1080px]:`) rather than JS — there
+// was a `hideRightRail` value here that nothing ever consumed.
 export function useBreakpoints() {
   return {
-    hideRightRail: useMediaQuery("(max-width: 1080px)"),
     iconRailSidebar: useMediaQuery("(max-width: 860px)"),
     mobile: useMediaQuery("(max-width: 560px)"),
   };

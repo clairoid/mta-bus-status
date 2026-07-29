@@ -20,7 +20,7 @@ export function DepartureBoard() {
   return (
     <PageShell title="Departure Board" liveCount={departures.length}>
       {loading ? (
-        <Skeleton className="h-80 w-full max-w-[720px]" />
+        <Skeleton className="mx-auto h-80 w-full max-w-[1100px]" />
       ) : departures.length === 0 ? (
         <EmptyState
           icon="list"
@@ -28,7 +28,7 @@ export function DepartureBoard() {
           subtitle="Enable routes from the Dashboard to populate the board."
         />
       ) : (
-        <div className="max-w-[720px] overflow-hidden rounded-card border border-border bg-card">
+        <div className="mx-auto max-w-[1100px] overflow-hidden rounded-card border border-border bg-card">
           <div className="grid grid-cols-[60px_1fr_70px] gap-2.5 bg-chip-soft px-[18px] py-3 text-[10px] font-bold uppercase tracking-wide text-dim min-[720px]:grid-cols-[60px_1fr_1fr_70px]">
             <span>Route</span>
             <span>Stop</span>

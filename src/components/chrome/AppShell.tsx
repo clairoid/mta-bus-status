@@ -18,6 +18,14 @@ export function AppShell({ children }: { children: ReactNode }) {
     // *expanded* mobile viewport, so on iOS Safari / Android Chrome the bottom
     // of the app — tab bar included — hid behind the browser toolbar.
     <div className="flex h-app w-full overflow-hidden bg-shell">
+      {/* Without this a keyboard user tabbed through all 19 sidebar links
+          before reaching the page — 21 stops, on every navigation. */}
+      <a
+        href="#main-content"
+        className="sr-only-focusable fixed top-3 left-3 z-50 rounded-control bg-accent px-4 py-2 text-sm font-semibold text-white"
+      >
+        Skip to content
+      </a>
       {!mobile && <Sidebar iconOnly={iconRailSidebar} />}
       <main
         className="flex min-w-0 flex-1 flex-col overflow-hidden"

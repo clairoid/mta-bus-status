@@ -49,7 +49,7 @@ export function Settings() {
 
   return (
     <PageShell title="Settings">
-      <div className="grid max-w-[820px] grid-cols-1 gap-5 min-[860px]:grid-cols-2">
+      <div className="mx-auto grid max-w-[820px] grid-cols-1 gap-5 min-[860px]:grid-cols-2">
         <div className="space-y-5">
           <InstallCard />
           <Card title="Appearance">

@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Link } from "react-router-dom";
 import { PageShell } from "../components/chrome/PageShell";
 import { SegmentedControl } from "../components/ui/SegmentedControl";
 import { Chip } from "../components/ui/Chip";
@@ -104,6 +105,15 @@ export function Dashboard() {
                 />
               ))}
             </ChipRail>
+            {/* The right rail (next arrival, departures, alerts) is hidden
+                below 1080px. Without this there was no sign it existed. */}
+            <Link
+              to="/departures"
+              className="order-4 hidden min-h-9 shrink-0 items-center gap-1 rounded-control px-2 text-xs font-semibold text-accent transition-colors hover:bg-chip sm:flex min-[1080px]:hidden"
+            >
+              Departure board
+              <Icon name="chevronRight" size={13} />
+            </Link>
           </div>
 
           {view === "map" ? (
@@ -119,7 +129,7 @@ export function Dashboard() {
               onOpenStop={openStop}
             />
           ) : loading ? (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 min-[640px]:grid-cols-2">
               {Array.from({ length: 4 }).map((_, i) => (
                 <StopCardSkeleton key={i} />
               ))}
@@ -131,7 +141,7 @@ export function Dashboard() {
               subtitle="Pick a route chip above to see live arrivals."
             />
           ) : (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 min-[640px]:grid-cols-2">
               {stops.map((stop) => (
                 <StopCard key={stop.stopId} stop={stop} onOpen={setSelectedStop} />
               ))}

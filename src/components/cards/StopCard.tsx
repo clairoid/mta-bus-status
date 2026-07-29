@@ -39,7 +39,7 @@ export function StopCard({ stop, accessible, distance, onOpen }: StopCardProps) 
           // Without this the header button had no accessible name at all —
           // screen readers announced a bare "button".
           aria-label={`${stop.name}, ${stop.arrivals.length} approaching. Open stop details`}
-          className="flex min-h-11 min-w-0 flex-1 items-center gap-2 py-3 pl-4 text-left transition-colors active:bg-chip"
+          className="flex min-h-11 min-w-0 flex-1 items-center gap-2 py-3 pl-4 text-left transition-colors hover:bg-chip active:bg-chip"
         >
           {accessible && (
             <Icon name="accessibility" size={15} className="shrink-0 text-accent" title="Accessible stop" />
@@ -56,7 +56,7 @@ export function StopCard({ stop, accessible, distance, onOpen }: StopCardProps) 
           onClick={onToggleFav}
           aria-pressed={isFav}
           aria-label={isFav ? `Unfavorite ${stop.name}` : `Favorite ${stop.name}`}
-          className="flex w-12 shrink-0 items-center justify-center transition-colors active:bg-chip"
+          className="flex w-12 shrink-0 items-center justify-center transition-colors hover:bg-chip active:bg-chip"
           style={{ color: isFav ? "var(--yellow)" : "var(--dim)" }}
         >
           <Icon name="star" size={17} filled={isFav} />
