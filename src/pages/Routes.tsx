@@ -8,6 +8,7 @@ import { useVehicles } from "../hooks/useVehicles";
 import { useReliability } from "../hooks/useReliability";
 import { useAppStore } from "../store/useAppStore";
 import { useToast } from "../components/overlays/toast-context";
+import type { ReliabilityEntry } from "../lib/data/types";
 
 // README Routes: 2-col route cards with Track pill + buses/on-time/avg-delay.
 // The card list is the user's followed lines (myRoutes), managed via the picker.
@@ -16,7 +17,7 @@ export function Routes() {
   const { showToast } = useToast();
   const myRoutes = useAppStore((s) => s.myRoutes);
   const { vehicles } = useVehicles(myRoutes);
-  const { reliability } = useReliability();
+  const { data: reliabilityData } = useReliability();
   const tracked = useAppStore((s) => s.tracked);
   const toggleTracked = useAppStore((s) => s.toggleTracked);
   const setRouteMapId = useAppStore((s) => s.setRouteMapId);
@@ -29,10 +30,10 @@ export function Routes() {
   }, [vehicles]);
 
   const relByRoute = useMemo(() => {
-    const map: Record<string, (typeof reliability)[number]> = {};
-    for (const r of reliability) map[r.route] = r;
+    const map: Record<string, ReliabilityEntry> = {};
+    for (const r of reliabilityData?.routes ?? []) map[r.route] = r;
     return map;
-  }, [reliability]);
+  }, [reliabilityData]);
 
   const openMap = (routeId: string) => {
     setRouteMapId(routeId);

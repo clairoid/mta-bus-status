@@ -29,7 +29,13 @@ export function RouteStatCard({
   onToggleTrack,
   onOpenMap,
 }: RouteStatCardProps) {
-  const pct = reliability?.pct ?? null;
+  // A route with no trips in service has no adherence to report — distinct
+  // from genuinely scoring 0%.
+  const hasTrips = !!reliability && reliability.total > 0;
+  const pct = hasTrips ? reliability.pct : null;
+  const medianLabel = hasTrips
+    ? `${reliability.medianDelayMin > 0 ? "+" : ""}${reliability.medianDelayMin}m`
+    : "—";
 
   return (
     <div className="rounded-card border border-border bg-card p-[18px]">
@@ -66,7 +72,10 @@ export function RouteStatCard({
           label="On time"
           valueColor={pct !== null ? onTimeColor(pct) : undefined}
         />
-        <StatTile value={reliability?.avgDelay ?? "—"} label="Avg delay" />
+        {/* Median rather than mean: a single 47-minute outlier shouldn't
+            characterise the whole line. Sign carries the meaning — negative
+            is running early, which is the common overnight failure. */}
+        <StatTile value={medianLabel} label="Median" />
       </button>
     </div>
   );

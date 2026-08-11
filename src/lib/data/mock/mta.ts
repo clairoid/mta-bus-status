@@ -8,7 +8,6 @@
 // SERVICE_CHANGES are still presentation fixtures.
 import type {
   CalendarData,
-  ReliabilityEntry,
   Route,
   RoutePath,
   ServiceChange,
@@ -22,11 +21,6 @@ export const ROUTES: Record<string, Route> = {
   B41: { id: "B41", color: "#8b5cf6", name: "Downtown – Kings Plaza" },
 };
 
-export const RELIABILITY: ReliabilityEntry[] = [
-  { route: "B6", pct: 91, onTime: 142, total: 156, avgDelay: "2m", trend: [78, 82, 85, 88, 86, 90, 91] },
-  { route: "B8", pct: 64, onTime: 61, total: 95, avgDelay: "6m", trend: [70, 68, 66, 60, 63, 62, 64] },
-  { route: "B15", pct: 83, onTime: 88, total: 106, avgDelay: "3m", trend: [80, 79, 84, 82, 85, 83, 83] },
-];
 
 
 

@@ -151,13 +151,32 @@ export interface RoutePath {
 
 // --- Mock-only domains (no real backend yet, see lib/data/adapters) ---
 
+// A live snapshot of schedule adherence, from GTFS-RT tripUpdates. There is no
+// `trend` here: that was a 7-day history the app never had anywhere to store,
+// and `avgDelay` was a pre-formatted string. `total` is trips *currently in
+// service* — 0 means nothing is running, which is not the same as 0% on time.
 export interface ReliabilityEntry {
   route: string;
   pct: number;
   onTime: number;
   total: number;
-  avgDelay: string;
-  trend: number[];
+  early: number;
+  late: number;
+  /** Median schedule deviation in minutes; negative means running early. */
+  medianDelayMin: number;
+}
+
+export interface ReliabilityCitywide {
+  routes: number;
+  trips: number;
+  pct: number;
+}
+
+export interface ReliabilityData {
+  routes: ReliabilityEntry[];
+  citywide: ReliabilityCitywide;
+  sampledAt: number;
+  stale?: boolean;
 }
 
 export interface CrowdingRouteLevel {

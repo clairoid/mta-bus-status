@@ -13,6 +13,7 @@ import trip from "./api/trip.js";
 import stopsForRoute from "./api/stops/[route].js";
 import polylinesForRoute from "./api/polylines/[route].js";
 import routesCatalog from "./api/routes.js";
+import reliability from "./api/reliability.js";
 import health from "./api/health.js";
 import push from "./api/push.js";
 
@@ -41,6 +42,7 @@ app.get("/api/trip", wrap(trip));
 app.get("/api/stops/:route", wrap(stopsForRoute));
 app.get("/api/polylines/:route", wrap(polylinesForRoute));
 app.get("/api/routes", wrap(routesCatalog));
+app.get("/api/reliability", wrap(reliability));
 // Push was previously Vercel-only, so its auth path couldn't be exercised locally.
 app.all("/api/push", wrap(push));
 

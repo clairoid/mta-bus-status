@@ -1,17 +1,14 @@
-import { mockReliabilitySource } from "./reliability";
 import { mockCalendarSource } from "./calendar";
 
-// Single point of truth for which implementation backs each domain that has
-// no real backend yet. Swapping one touches only this file (and its new
-// adapter file), never the pages/components.
+// Single point of truth for which implementation backs each domain that has no
+// real backend yet. Only one is left: Service Calendar needs GTFS *static*
+// (calendar.txt / calendar_dates.txt) — the realtime alert feed carries no
+// future-dated entries to build a calendar from (verified: 0 of 77 alerts had
+// a future activePeriod).
 //
-// Crowding, notifications, saved views and trip history have graduated off
-// mocks — they're derived from the live feeds or the synced store directly.
-// What's left needs infrastructure the app doesn't have:
-//   reliability → time-series sampling of Expected vs Aimed arrival times
-//   calendar    → GTFS static (calendar.txt); the realtime alert feed
-//                 carries no future-dated entries to build a calendar from
+// Everything else now runs on live data: crowding and notifications are
+// derived from the SIRI/GTFS-RT feeds, reliability comes from GTFS-RT
+// tripUpdates, and saved views / trip history live in the synced store.
 export const dataSources = {
-  reliability: mockReliabilitySource,
   calendar: mockCalendarSource,
 };
