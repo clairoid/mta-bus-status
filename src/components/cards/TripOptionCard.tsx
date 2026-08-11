@@ -5,17 +5,31 @@ import type { TripSuggestion } from "../../lib/data/types";
 interface TripOptionCardProps {
   option: TripSuggestion;
   rank: number;
+  /** Choosing an option records it in Trip History. */
+  onSelect?: (option: TripSuggestion) => void;
 }
 
 // README Trip Planner option: route badge, tag, total (walking) minutes,
 // leg breakdown. The real /api/trip provides walk times + route (no ride
 // ETA), so the total shown is walking minutes.
-export function TripOptionCard({ option, rank }: TripOptionCardProps) {
+export function TripOptionCard({ option, rank, onSelect }: TripOptionCardProps) {
   const tag = option.transferRequired ? "Transfer" : rank === 0 ? "Direct · fastest" : "Direct";
   const tagColor = option.transferRequired ? "var(--yellow)" : "#22c55e";
+  const Wrapper = onSelect ? "button" : "div";
 
   return (
-    <div className="rounded-card border border-border bg-card p-4">
+    <Wrapper
+      {...(onSelect
+        ? {
+            type: "button" as const,
+            onClick: () => onSelect(option),
+            "aria-label": `Take the ${option.route}, ${option.totalWalkMin} minutes walking. Saves to trip history`,
+          }
+        : {})}
+      className={`block w-full rounded-card border border-border bg-card p-4 text-left ${
+        onSelect ? "transition-colors hover:bg-chip active:bg-chip" : ""
+      }`}
+    >
       <div className="mb-3 flex items-center gap-2.5">
         <RouteBadge routeId={option.route} size="lg" />
         <span className="flex items-center gap-1 text-xs font-bold" style={{ color: tagColor }}>
@@ -43,6 +57,9 @@ export function TripOptionCard({ option, rank }: TripOptionCardProps) {
       <div className="mt-2 truncate text-[11px] capitalize text-dim">
         {option.originStop.name.toLowerCase()} → {option.destStop.name.toLowerCase()}
       </div>
-    </div>
+      {onSelect && (
+        <div className="mt-2 text-[11px] font-semibold text-accent">Save to trip history</div>
+      )}
+    </Wrapper>
   );
 }

@@ -79,7 +79,7 @@ export function Sheet({
       document.removeEventListener("keydown", onKey);
       restoreFocusRef.current?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open, onClose, initialFocusRef]);
 
   useEffect(() => {
     if (!open) {

@@ -1,8 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Theme } from "../lib/theme/theme-context";
-import type { SavedView } from "../lib/data/types";
-import { SAVED_VIEWS } from "../lib/data/mock/mta";
+import type { SavedView, TripHistoryEntry } from "../lib/data/types";
 
 export interface AccessibilitySettings {
   highContrast: boolean;
@@ -76,6 +75,12 @@ interface AppState {
   recentTrips: string[];
   addRecentTrip: (label: string) => void;
   removeRecentTrip: (label: string) => void;
+  // Trips the user planned. Rides through the existing user_state sync, so it
+  // works offline, persists locally, and follows the account across devices
+  // without a new table or endpoint.
+  tripHistory: TripHistoryEntry[];
+  addTripHistory: (entry: TripHistoryEntry) => void;
+  clearTripHistory: () => void;
   acField: "from" | "to" | null;
   setAcField: (field: "from" | "to" | null) => void;
 
@@ -99,6 +104,9 @@ interface AppState {
 }
 
 const MAX_RECENT_TRIPS = 5;
+// Capped because the whole durable slice is serialized into one synced JSON
+// blob on every change.
+const MAX_TRIP_HISTORY = 50;
 
 // Read at store-creation time, so it has to tolerate a non-browser environment
 // (tests, and any future SSR) rather than throwing on `window.matchMedia`.
@@ -113,7 +121,7 @@ function prefersReducedMotion(): boolean {
 export const PERSISTED_KEYS = [
   "theme", "view", "heatmap", "myRoutes", "mapRoutes", "fav", "tracked",
   "readNotifs", "alertFilter", "savedViews", "routeAlerts", "tripFrom",
-  "tripTo", "recentTrips", "pushAlerts", "a11y", "textSize",
+  "tripTo", "recentTrips", "tripHistory", "pushAlerts", "a11y", "textSize",
 ] as const satisfies readonly (keyof AppState)[];
 
 export type PersistedState = Pick<AppState, (typeof PERSISTED_KEYS)[number]>;
@@ -121,7 +129,7 @@ export type PersistedState = Pick<AppState, (typeof PERSISTED_KEYS)[number]>;
 // Bumped whenever the shape of the durable slice changes incompatibly. Stored
 // alongside the state so a newer client can recognise (and decline to be
 // clobbered by) a blob written by an older one.
-export const STATE_VERSION = 2;
+export const STATE_VERSION = 3;
 
 // Snapshot the durable slice of the store (for pushing to Supabase).
 export function snapshotPersisted(): PersistedState {
@@ -230,7 +238,9 @@ export const useAppStore = create<AppState>()(
       helpOpen: false,
       setHelpOpen: (helpOpen) => set({ helpOpen }),
 
-      savedViews: SAVED_VIEWS,
+      // Seeded empty — this used to ship two fabricated views that looked like
+      // the user had saved them.
+      savedViews: [],
       addSavedView: (view) => set((s) => ({ savedViews: [view, ...s.savedViews] })),
       removeSavedView: (id) =>
         set((s) => ({ savedViews: s.savedViews.filter((v) => v.id !== id) })),
@@ -247,6 +257,10 @@ export const useAppStore = create<AppState>()(
         })),
       removeRecentTrip: (label) =>
         set((s) => ({ recentTrips: s.recentTrips.filter((t) => t !== label) })),
+      tripHistory: [],
+      addTripHistory: (entry) =>
+        set((s) => ({ tripHistory: [entry, ...s.tripHistory].slice(0, MAX_TRIP_HISTORY) })),
+      clearTripHistory: () => set({ tripHistory: [] }),
       acField: null,
       setAcField: (acField) => set({ acField }),
 

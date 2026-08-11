@@ -3,6 +3,7 @@ import { OccupancyBar } from "../components/cards/OccupancyBar";
 import { SegmentBarChart } from "../components/cards/SegmentBarChart";
 import { Overline } from "../components/ui/Overline";
 import { Skeleton } from "../components/ui/Skeleton";
+import { EmptyState } from "../components/ui/EmptyState";
 
 import { useCrowding } from "../hooks/useCrowding";
 
@@ -12,10 +13,10 @@ const LEGEND: [string, string][] = [
   ["#ef4444", "Heavy"],
 ];
 
-// README Live Crowding: left per-route occupancy bars; right B6 along-route
-// segment bar chart + legend. Mock-backed until SIRI Occupancy aggregation.
+// Live Crowding: left per-route occupancy bars; right, crowding along one
+// route. Both derived from the SIRI Occupancy field on the live vehicle feed.
 export function LiveCrowding() {
-  const { crowding, loading } = useCrowding();
+  const { crowding, loading, routes } = useCrowding();
 
   if (loading || !crowding) {
     return (
@@ -28,6 +29,20 @@ export function LiveCrowding() {
     );
   }
 
+  if (routes.length === 0) {
+    return (
+      <PageShell title="Live Crowding">
+        <EmptyState
+          icon="users"
+          title="No routes selected"
+          subtitle="Pick a route chip on the Dashboard to see live occupancy."
+        />
+      </PageShell>
+    );
+  }
+
+  const anyReporting = crowding.segments.length > 0;
+
   return (
     <PageShell title="Live Crowding">
       <div className="grid grid-cols-1 gap-5 min-[1080px]:grid-cols-2">
@@ -38,11 +53,18 @@ export function LiveCrowding() {
               <OccupancyBar key={entry.route} entry={entry} />
             ))}
           </div>
+          {/* Not every bus reports occupancy, and overnight almost none do —
+              say so rather than showing an empty bar as if it meant "empty". */}
+          <p className="mt-4 text-[11px] leading-relaxed text-dim">
+            Occupancy comes from the MTA's live feed and isn't reported by every bus.
+          </p>
         </div>
 
         <div className="rounded-card border border-border bg-card p-[18px]">
-          <div className="mb-1 flex items-center justify-between">
-            <Overline>B6 crowding along route</Overline>
+          <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+            <Overline>
+              {crowding.segmentRoute ? `${crowding.segmentRoute} crowding along route` : "Crowding along route"}
+            </Overline>
             <div className="flex gap-3">
               {LEGEND.map(([color, label]) => (
                 <span key={label} className="flex items-center gap-1.5 text-[11px] text-dim">
@@ -52,9 +74,20 @@ export function LiveCrowding() {
               ))}
             </div>
           </div>
-          <div className="mt-4">
-            <SegmentBarChart segments={crowding.segments} />
-          </div>
+          {anyReporting ? (
+            <>
+              <div className="mt-4">
+                <SegmentBarChart segments={crowding.segments} />
+              </div>
+              <p className="mt-3 text-[11px] leading-relaxed text-dim">
+                Each bar is a bus in service, at the stop it's approaching.
+              </p>
+            </>
+          ) : (
+            <p className="mt-6 text-sm text-dim">
+              No buses on these routes are reporting occupancy right now.
+            </p>
+          )}
         </div>
       </div>
     </PageShell>

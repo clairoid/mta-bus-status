@@ -1,20 +1,17 @@
-// Ported from the design handoff's data/mta.js. Domains that already have
-// a real backend (routes, stops, arrivals, vehicles, alerts, trip, route
-// paths) are NOT consumed from here in the app — see lib/data/real/*.
-// Only the domains with no backend yet (see lib/data/adapters/) read from
-// this module, per API_MAPPING.md's suggested mock->real swap boundary.
+// Ported from the design handoff's data/mta.js. Most domains have graduated
+// off this file — routes, stops, arrivals, vehicles, alerts and trip come
+// from lib/data/real/*; crowding and notifications are derived from those
+// live feeds; saved views and trip history live in the synced store.
+//
+// What remains needs infrastructure that doesn't exist yet: RELIABILITY
+// needs time-series sampling, CALENDAR needs GTFS static. ROUTE_PATHS and
+// SERVICE_CHANGES are still presentation fixtures.
 import type {
   CalendarData,
-  Commute,
-  CrowdingData,
-  NearbyStop,
-  AppNotification,
   ReliabilityEntry,
   Route,
   RoutePath,
-  SavedView,
   ServiceChange,
-  TripHistoryEntry,
 } from "../types";
 
 export const ROUTES: Record<string, Route> = {
@@ -31,60 +28,11 @@ export const RELIABILITY: ReliabilityEntry[] = [
   { route: "B15", pct: 83, onTime: 88, total: 106, avgDelay: "3m", trend: [80, 79, 84, 82, 85, 83, 83] },
 ];
 
-export const NEARBY: NearbyStop[] = [
-  { id: "n1", name: "Court St / Livingston", dist: "120m", accessible: true, chips: [{ route: "B6", eta: "2m", color: "#3b82f6" }, { route: "B8", eta: "6m", color: "#f59e0b" }] },
-  { id: "n2", name: "Smith / 9 St", dist: "340m", accessible: false, chips: [{ route: "B8", eta: "8m", color: "#f59e0b" }] },
-  { id: "n3", name: "Flatbush / Church", dist: "0.6km", accessible: true, chips: [{ route: "B15", eta: "3m", color: "#10b981" }] },
-];
 
-export const SAVED_VIEWS: SavedView[] = [
-  { id: "v1", icon: "sun", name: "Morning commute", routes: ["B6", "B8"], meta: "2 stops · centered on Court St" },
-  { id: "v2", icon: "star", name: "Weekend Brooklyn", routes: ["B6", "B15", "B44"], meta: "5 stops · centered on Prospect Park" },
-];
 
-export const COMMUTE: Commute = {
-  from: "Home",
-  to: "Work",
-  walk: "0.4 mi · 8 min walk",
-  legs: [
-    { route: "B6", label: "Court St → Kings Hwy", eta: 132, note: "boarding" },
-    { route: "B15", label: "Kings Hwy → Flatbush", eta: 660, note: "transfer" },
-  ],
-};
 
-export const NOTIFICATIONS: AppNotification[] = [
-  { id: 1, icon: "bus", color: "#3b82f6", title: "B6 arriving in 2 min", body: "5 Av / 42 St · Bay Ridge", time: "now", unread: true },
-  { id: 2, icon: "alert", color: "#f59e0b", title: "B8 delay on your route", body: "Detoured via Coney Island Ave · +10 min", time: "8m", unread: true },
-  { id: 3, icon: "bell", color: "#6366f1", title: "Your bus is 1 stop away", body: "B15 approaching Flatbush / Av N", time: "1h", unread: false },
-  { id: 4, icon: "check", color: "#22c55e", title: "B6 back to normal service", body: "Delays on Kings Hwy have cleared", time: "3h", unread: false },
-  { id: 5, icon: "calendar", color: "#9aa0aa", title: "Holiday schedule this Friday", body: "Reduced weekend service on all routes", time: "1d", unread: false },
-];
 
-export const CROWDING: CrowdingData = {
-  routes: [
-    { route: "B6", level: 0.85, label: "Heavy", riders: "82% full" },
-    { route: "B8", level: 0.55, label: "Moderate", riders: "54% full" },
-    { route: "B15", level: 0.28, label: "Light", riders: "27% full" },
-  ],
-  segments: [
-    { stop: "Bay Ridge Av", level: 0.35 },
-    { stop: "7 Av / 60 St", level: 0.62 },
-    { stop: "Ft Hamilton", level: 0.88 },
-    { stop: "Dahill Rd", level: 0.95 },
-    { stop: "Kings Hwy", level: 0.7 },
-    { stop: "Ave U", level: 0.44 },
-    { stop: "Flatbush", level: 0.25 },
-  ],
-};
 
-export const TRIP_HISTORY: TripHistoryEntry[] = [
-  { id: "h1", group: "Today", route: "B6", from: "Court St", to: "Kings Hwy", time: "8:12 AM", dur: "22 min", status: "On time", statusColor: "#22c55e" },
-  { id: "h2", group: "Today", route: "B15", from: "Flatbush", to: "JFK Airport", time: "7:04 AM", dur: "41 min", status: "+6 min", statusColor: "#eab308" },
-  { id: "h3", group: "Yesterday", route: "B6", from: "Court St", to: "Kings Hwy", time: "6:38 PM", dur: "25 min", status: "On time", statusColor: "#22c55e" },
-  { id: "h4", group: "Yesterday", route: "B8", from: "Ave U", to: "Red Hook", time: "8:20 AM", dur: "34 min", status: "+12 min", statusColor: "#ef4444" },
-  { id: "h5", group: "This week", route: "B6", from: "Court St", to: "Kings Hwy", time: "Mon 8:10 AM", dur: "21 min", status: "On time", statusColor: "#22c55e" },
-  { id: "h6", group: "This week", route: "B15", from: "Flatbush", to: "New Lots", time: "Mon 5:52 PM", dur: "29 min", status: "+3 min", statusColor: "#eab308" },
-];
 
 export const CALENDAR: CalendarData = {
   month: "July 2026",

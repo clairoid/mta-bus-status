@@ -9,6 +9,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { fetchTrip } from "../lib/data/real/trip";
 import { geocodePlaces, type GeoPlace } from "../lib/data/geocode";
 import { useAppStore } from "../store/useAppStore";
+import { useToast } from "../components/overlays/toast-context";
 import type { TripSuggestion } from "../lib/data/types";
 
 // Saved Home/Work places (README Trip Planner autocomplete quick-picks).
@@ -26,6 +27,8 @@ export function TripPlanner() {
   const recentTrips = useAppStore((s) => s.recentTrips);
   const addRecentTrip = useAppStore((s) => s.addRecentTrip);
   const removeRecentTrip = useAppStore((s) => s.removeRecentTrip);
+  const addTripHistory = useAppStore((s) => s.addTripHistory);
+  const { showToast } = useToast();
 
   const [fromCoords, setFromCoords] = useState<GeoPlace | null>(null);
   const [toCoords, setToCoords] = useState<GeoPlace | null>(null);
@@ -47,6 +50,23 @@ export function TripPlanner() {
       }
     },
     [addRecentTrip, myRoutes]
+  );
+
+  // Choosing an option is the moment we actually know a trip happened, so
+  // that's what Trip History records — not every speculative search.
+  const saveTrip = useCallback(
+    (option: TripSuggestion) => {
+      addTripHistory({
+        id: `t${Date.now()}-${option.route}`,
+        route: option.route,
+        from: tripFrom || option.originStop.name,
+        to: tripTo || option.destStop.name,
+        at: Date.now(),
+        walkMin: option.totalWalkMin,
+      });
+      showToast("Saved to trip history", "history");
+    },
+    [addTripHistory, showToast, tripFrom, tripTo]
   );
 
   const pickFrom = (place: GeoPlace) => {
@@ -138,7 +158,12 @@ export function TripPlanner() {
         ) : (
           <div className="space-y-3">
             {suggestions.slice(0, 3).map((option, i) => (
-              <TripOptionCard key={`${option.route}-${i}`} option={option} rank={i} />
+              <TripOptionCard
+                key={`${option.route}-${i}`}
+                option={option}
+                rank={i}
+                onSelect={saveTrip}
+              />
             ))}
           </div>
         )}

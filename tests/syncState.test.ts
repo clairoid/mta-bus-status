@@ -40,7 +40,7 @@ describe("sanitizePersisted", () => {
       PERSISTED_KEYS.map((k) => [k, ({
         theme: "dark", view: "map", heatmap: true, myRoutes: [], mapRoutes: [],
         fav: {}, tracked: {}, readNotifs: {}, alertFilter: "All", savedViews: [],
-        routeAlerts: {}, tripFrom: "", tripTo: "", recentTrips: [],
+        routeAlerts: {}, tripFrom: "", tripTo: "", recentTrips: [], tripHistory: [],
         pushAlerts: true, a11y: {}, textSize: 1,
       } as Record<string, unknown>)[k]])
     );

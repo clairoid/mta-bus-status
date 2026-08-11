@@ -175,6 +175,8 @@ export interface CrowdingSegment {
 export interface CrowdingData {
   routes: CrowdingRouteLevel[];
   segments: CrowdingSegment[];
+  /** Which route `segments` describes — the panel heading is dynamic now. */
+  segmentRoute: string;
 }
 
 export interface CalendarData {
@@ -187,7 +189,8 @@ export interface CalendarData {
 }
 
 export interface AppNotification {
-  id: number;
+  /** GTFS-RT alert entity id — string, since these come from the feed. */
+  id: string;
   icon: IconName;
   color: string;
   title: string;
@@ -204,16 +207,19 @@ export interface SavedView {
   meta: string;
 }
 
+// A trip the user actually planned. Only facts we have are stored: the old
+// shape carried `group`/`time`/`dur`/`status` as frozen strings, which meant
+// "Today" stayed "Today" forever and the on-time status was invented — the
+// app never observes whether a ride happened. Grouping and clock time are
+// derived from `at` at render; `walkMin` is what /api/trip actually returns.
 export interface TripHistoryEntry {
   id: string;
-  group: string;
   route: string;
   from: string;
   to: string;
-  time: string;
-  dur: string;
-  status: string;
-  statusColor: string;
+  /** epoch ms when the trip was planned */
+  at: number;
+  walkMin: number;
 }
 
 export interface CommuteLeg {
