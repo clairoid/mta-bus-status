@@ -100,26 +100,6 @@ export interface TripSuggestion {
   transferNote?: string;
 }
 
-export interface AccessibilityStop {
-  id: string;
-  name: string;
-  wheelchairBoarding: string;
-}
-
-export interface AccessibilityInfo {
-  route: string;
-  wheelchairBoarding: string;
-  stops: AccessibilityStop[];
-}
-
-export interface SubwayStation {
-  name: string;
-  lines: string[];
-  lat: number;
-  lon: number;
-  distance: number;
-}
-
 export interface RouteStop {
   id: string;
   name: string;
@@ -149,7 +129,7 @@ export interface RoutePath {
   buses: number[];
 }
 
-// --- Mock-only domains (no real backend yet, see lib/data/adapters) ---
+// --- Domains derived from the live feeds or the synced store ---
 
 // A live snapshot of schedule adherence, from GTFS-RT tripUpdates. There is no
 // `trend` here: that was a 7-day history the app never had anywhere to store,
@@ -198,15 +178,6 @@ export interface CrowdingData {
   segmentRoute: string;
 }
 
-export interface CalendarData {
-  month: string;
-  weeks: (number | null)[][];
-  today: number;
-  events: Record<number, string>;
-  legend: [string, string][];
-  upcoming: { day: string; label: string; type: string }[];
-}
-
 export interface AppNotification {
   /** GTFS-RT alert entity id — string, since these come from the feed. */
   id: string;
@@ -239,34 +210,6 @@ export interface TripHistoryEntry {
   /** epoch ms when the trip was planned */
   at: number;
   walkMin: number;
-}
-
-export interface CommuteLeg {
-  route: string;
-  label: string;
-  eta: number;
-  note: string;
-}
-
-export interface Commute {
-  from: string;
-  to: string;
-  walk: string;
-  legs: CommuteLeg[];
-}
-
-export interface NearbyChip {
-  route: string;
-  eta: string;
-  color: string;
-}
-
-export interface NearbyStop {
-  id: string;
-  name: string;
-  dist: string;
-  accessible: boolean;
-  chips: NearbyChip[];
 }
 
 export interface ServiceChange {

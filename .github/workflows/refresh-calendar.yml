@@ -1,0 +1,52 @@
+name: Refresh service calendar
+
+# The MTA republishes its GTFS static timetable every few weeks, and the
+# generated artifact only covers the window that feed describes (currently
+# ~10 weeks). This regenerates it weekly and opens a PR when the schedule
+# actually changed, so the committed data doesn't silently go stale.
+#
+# A PR rather than a direct push: the artifact drives what users see, so a
+# human should glance at the diff.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Mondays, 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Regenerate from MTA GTFS static
+        run: npm run build:calendar
+
+      - name: Verify the app still builds against it
+        run: npm run typecheck && npm test
+
+      - name: Open a PR if the timetable changed
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "Refresh service calendar from MTA GTFS static"
+          title: "Refresh service calendar"
+          body: |
+            Regenerated `src/lib/data/generated/serviceCalendar.json` from the
+            MTA GTFS static feeds.
+
+            Check the diff for the new coverage window and any added or removed
+            schedule changes before merging.
+          branch: chore/refresh-service-calendar
+          delete-branch: true
+          add-paths: src/lib/data/generated/serviceCalendar.json

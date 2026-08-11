@@ -12,7 +12,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "build:calendar": "node scripts/build-service-calendar.mjs"
   },
   "//overrides": "Transitive-only advisories, all reached via gtfs-realtime-bindings -> protobufjs-cli (a build-time CLI that never executes at runtime here). Pinned to patched versions so `npm audit` stays clean and signal isn't lost in noise.",
   "overrides": {
@@ -42,6 +43,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "express": "^5.2.1",
+    "fflate": "^0.8.3",
     "globals": "^17.6.0",
     "jsdom": "^30.0.0",
     "tailwindcss": "^4.3.3",

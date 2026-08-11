@@ -1,13 +1,14 @@
-// Ported from the design handoff's data/mta.js. Most domains have graduated
-// off this file — routes, stops, arrivals, vehicles, alerts and trip come
-// from lib/data/real/*; crowding and notifications are derived from those
-// live feeds; saved views and trip history live in the synced store.
+// Ported from the design handoff's data/mta.js. Every data domain has now
+// graduated off this file: routes/stops/arrivals/vehicles/alerts/trip come
+// from lib/data/real/*, crowding and notifications are derived from those
+// feeds, reliability from GTFS-RT tripUpdates, the service calendar from
+// GTFS static, and saved views / trip history from the synced store.
 //
-// What remains needs infrastructure that doesn't exist yet: RELIABILITY
-// needs time-series sampling, CALENDAR needs GTFS static. ROUTE_PATHS and
-// SERVICE_CHANGES are still presentation fixtures.
+// What's left are presentation fixtures, not pretend data sources:
+// ROUTE_PATHS is the Route Map's schematic rail layout (real stop lists are
+// fetched alongside it) and SERVICE_CHANGES seeds a screen the real alerts
+// feed already powers.
 import type {
-  CalendarData,
   Route,
   RoutePath,
   ServiceChange,
@@ -28,24 +29,6 @@ export const ROUTES: Record<string, Route> = {
 
 
 
-export const CALENDAR: CalendarData = {
-  month: "July 2026",
-  weeks: [
-    [null, null, 1, 2, 3, 4, 5],
-    [6, 7, 8, 9, 10, 11, 12],
-    [13, 14, 15, 16, 17, 18, 19],
-    [20, 21, 22, 23, 24, 25, 26],
-    [27, 28, 29, 30, 31, null, null],
-  ],
-  today: 16,
-  events: { 18: "alert", 24: "alert", 4: "holiday" },
-  legend: [["#6366f1", "Today"], ["#eab308", "Service alert"], ["#ef4444", "Holiday schedule"]],
-  upcoming: [
-    { day: "Jul 18", label: "B8 weekend detour", type: "alert" },
-    { day: "Jul 24", label: "B44-SBS suspended", type: "alert" },
-    { day: "Jul 4", label: "Independence Day — holiday service", type: "holiday" },
-  ],
-};
 
 // chronological feed shape kept for reference; the Service Changes screen
 // is powered by the real /api/alerts adapter instead (see README nuance

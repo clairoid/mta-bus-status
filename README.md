@@ -79,6 +79,7 @@ and installs a trigger that provisions rows on signup.
 | `npm test` | Vitest (single run) |
 | `npm run test:watch` | Vitest watch mode |
 | `npm start` | Build, then serve `dist/` + the API from one process |
+| `npm run build:calendar` | Regenerate the service calendar from MTA GTFS static (see below) |
 
 ---
 
@@ -98,6 +99,7 @@ cache so repeat polling doesn't re-invoke the function.
 | `/api/stops/:route` | 1h | Stops with coordinates |
 | `/api/polylines/:route` | 1h | Decoded route geometry |
 | `/api/trip?originLat=&originLng=&destLat=&destLng=&routes=` | 5m | Nearest-stop trip suggestions |
+| `/api/reliability?routes=` | 30s | Live schedule adherence from GTFS-RT tripUpdates |
 | `/api/push` | none | `GET` = cron alert scan (needs `CRON_SECRET`). `POST` = send a test push to your own subscription (needs a Supabase bearer token) |
 
 **`?routes=` is validated and capped at 8 entries.** Each entry costs one
@@ -151,10 +153,36 @@ Two things worth knowing before changing data code:
 `BX`/`BM` prefix check, or Bronx SBS routes get the wrong agency. See
 `routeApiId` in `api/_lib.js` — it's covered by tests for exactly this reason.
 
-**Some screens are still mock-backed.** Crowding, reliability, service calendar,
-notifications and saved views/trip history read from `lib/data/adapters`, which
-currently point at `lib/data/mock/mta.ts`. Swapping one to a real backend means
-editing `adapters/index.ts` and nothing else.
+**Which MTA feed powers what.** Three realtime feeds plus one static:
+
+| Feed | Powers |
+|---|---|
+| SIRI (`bustime-classic.mta.info`) | arrivals, vehicles, stops, route geometry |
+| GTFS-RT `alerts` | service alerts, notifications |
+| GTFS-RT `tripUpdates` | reliability / schedule adherence |
+| GTFS **static** zips | service calendar (build step, see below) |
+
+Two fields look useful and are not: `stopTimeUpdate.arrival.delay` in
+tripUpdates and `Extensions.Deviation.Delay` in SIRI are both always `0`.
+Schedule adherence comes from trip-level `tripUpdate.delay`, which is real.
+`speed` and a non-`normalProgress` `progressRate` are likewise never populated,
+so the map's speed colouring and delay ring don't fire in practice.
+
+**The service calendar is a build artifact, not an endpoint.** The realtime
+alert feed carries no future-dated entries, so a forward-looking calendar has
+to come from GTFS static. `npm run build:calendar` downloads the six borough /
+agency zips, reads only `calendar.txt`, `calendar_dates.txt` and
+`feed_info.txt` (`stop_times.txt` alone is ~123 MB uncompressed and is skipped
+by streaming the archive), and writes
+`src/lib/data/generated/serviceCalendar.json`. That file is **committed** so
+builds never depend on MTA's servers, and a weekly GitHub Action opens a PR
+when the timetable changes.
+
+Note that most `calendar_dates.txt` rows are *not* rider-visible changes — in
+summer the MTA suppresses the plain `-Weekday` service and runs `-Weekday-SDon`
+instead, which is still a weekday schedule. The script compares the effective
+day *type* against the natural weekday, so only genuine changes (a Saturday
+schedule on a Friday holiday, say) are flagged.
 
 ---
 
