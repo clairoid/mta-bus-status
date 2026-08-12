@@ -145,3 +145,27 @@
     display: none;
   }
 }
+
+/* Mapbox ships its popup as a white card: `.mapboxgl-popup-content` sets
+   `background:#fff` plus `padding:10px 10px 15px`. busPopupHtml already draws
+   a complete card of its own inside it, so on a dark map that stock chrome
+   read as a thick white frame around our card (wider along the bottom, where
+   the padding is 15px). The container's only job is positioning.
+
+   Deliberately unlayered and at 0,2,0: mapbox-gl.css rides along with the
+   lazy LiveMap chunk, so it is injected into <head> *after* this file. A rule
+   inside `@layer base` would lose to it outright (unlayered beats layered),
+   and a plain `.mapboxgl-popup-content` would lose the source-order tie. */
+.mapboxgl-popup .mapboxgl-popup-content {
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+
+/* The tip is that same white. With the frame gone it would be left behind as
+   a lone white triangle, and it can't follow the card anyway — the card's top
+   edge is the route colour and its bottom edge is --card. The popup's 16px
+   offset keeps it clear of the bus marker without one. */
+.mapboxgl-popup .mapboxgl-popup-tip {
+  display: none;
+}
