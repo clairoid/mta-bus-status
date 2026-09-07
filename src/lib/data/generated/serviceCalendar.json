@@ -1,43 +1,77 @@
 {
-  "generatedAt": "2026-08-11T06:51:46.242Z",
+  "generatedAt": "2026-09-07T11:46:05.799Z",
   "source": "MTA GTFS static (rrgtfsfeeds.s3.amazonaws.com)",
-  "rangeStart": "20260627",
-  "rangeEnd": "20260905",
+  "rangeStart": "20260905",
+  "rangeEnd": "20270102",
   "feeds": [
     {
       "id": "b",
       "label": "Brooklyn",
-      "version": "gtfs_b_20260611T155327Z"
+      "version": "20260813"
     },
     {
       "id": "bx",
       "label": "Bronx",
-      "version": "gtfs_bx_20260611T155333Z"
+      "version": "20260813"
     },
     {
       "id": "m",
       "label": "Manhattan",
-      "version": "gtfs_m_20260611T155328Z"
+      "version": "20260813"
     },
     {
       "id": "q",
       "label": "Queens",
-      "version": "gtfs_q_20260611T155317Z"
+      "version": "20260813"
     },
     {
       "id": "si",
       "label": "Staten Island",
-      "version": "gtfs_si_20260723T175849Z"
+      "version": "20260813"
     },
     {
       "id": "busco",
       "label": "MTA Bus Company",
-      "version": "gtfs_busco_20260611T155311Z"
+      "version": "20260813"
     }
   ],
   "exceptions": [
     {
-      "date": "2026-07-03",
+      "date": "2026-09-07",
+      "naturalType": "weekday",
+      "effectiveType": "sunday",
+      "label": "Sunday schedule",
+      "feeds": [
+        "busco",
+        "si"
+      ]
+    },
+    {
+      "date": "2026-11-26",
+      "naturalType": "weekday",
+      "effectiveType": "sunday",
+      "label": "Sunday schedule",
+      "feeds": [
+        "busco",
+        "si"
+      ]
+    },
+    {
+      "date": "2026-12-25",
+      "naturalType": "weekday",
+      "effectiveType": "saturday",
+      "label": "Saturday schedule",
+      "feeds": [
+        "b",
+        "busco",
+        "bx",
+        "m",
+        "q",
+        "si"
+      ]
+    },
+    {
+      "date": "2027-01-01",
       "naturalType": "weekday",
       "effectiveType": "saturday",
       "label": "Saturday schedule",
